@@ -9,4 +9,8 @@
 void Groza_t55_init (void);
 void Groza_t55_main (void);
 
+uint32_t Value_T55 (uint8_t);
+void Set_Flag_60_Sec(uint8_t);
+uint8_t Get_Flag_60_Sec(void);
+
 #endif
