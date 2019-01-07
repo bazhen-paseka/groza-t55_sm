@@ -3,6 +3,7 @@
 
 extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim4;
+extern ADC_HandleTypeDef hadc1;
 
   char DataChar[100];
 
@@ -21,7 +22,7 @@ void Groza_t55_init (void)
 }
 //*****************************************************************************
 
-void Groza_t55_main (void)
+uint8_t Groza_t55_main (char* http_req_1)
 {
 	for (int j=0; j<4; j++)
 	{
@@ -67,8 +68,21 @@ void Groza_t55_main (void)
 	sprintf(DataChar,"%d (%d)  %d (%d)\r\n", (int)timer_u32[0], value_i32[3], (int)timer_u32[2], value_i32[4] );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
+	uint32_t adc_value_U = ( ADC1_GetValue(ADC_CHANNEL_5) * 4) / 10 ;
+
+
+	//adc_value_T = ( ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR) *3 ) /2;
+
+
+
+	//char http_req_1[200];
+	sprintf(http_req_1, "GET /update?api_key=%s&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d\r\n\r\n",
+			THINGSPEAK_API_KEY, value_i32[1], value_i32[2], value_i32[3], value_i32[4], adc_value_U);
+
+	return strlen(http_req_1);
 }
 //*****************************************************************************
+
 int Value_T55 (uint8_t _kanal)
 {
 	return value_i32[_kanal];
@@ -89,5 +103,22 @@ uint8_t Get_Flag_60_Sec(void)
 void Timer_Update( uint8_t _timer_u8, uint32_t _tim_value_u32)
 {
 	timer_u32[_timer_u8] = _tim_value_u32;
+}
+//*****************************************************************************
+
+uint32_t ADC1_GetValue(uint32_t channel)
+{
+    /* Config ADC channel */
+    ADC_ChannelConfTypeDef sConfig;
+    sConfig.Channel = channel;
+    sConfig.Rank = 1;
+    //sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+    HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+    /* Start conversion */
+    HAL_ADC_Start(&hadc1);
+    /* Wait until finish */
+    HAL_ADC_PollForConversion(&hadc1, 100);
+    uint32_t value = HAL_ADC_GetValue(&hadc1);
+    return value;
 }
 //*****************************************************************************
