@@ -54,8 +54,6 @@ void Groza_t55_main (void)
 
 	sprintf(DataChar,"%d (%d)  %d (%d)\r\n", (int)tim_k0, (int)(tim_k0-tim_k1), (int)tim_k2, (int)(tim_k2-tim_k3) );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-
-
 }
 //*****************************************************************************
 
