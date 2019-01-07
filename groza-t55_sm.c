@@ -22,7 +22,7 @@ void Groza_t55_init (void)
 }
 //*****************************************************************************
 
-uint8_t Groza_t55_main (char* http_req_1)
+void Groza_t55_main (char* http_req_1, uint8_t* size_of_http_req )
 {
 	for (int j=0; j<4; j++)
 	{
@@ -45,8 +45,6 @@ uint8_t Groza_t55_main (char* http_req_1)
 	sprintf(DataChar,"%d (%d)  %d (%d)  ", (int)timer_u32[0], value_i32[1], (int)timer_u32[2], value_i32[2] );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
-
-
 	for (int j=0; j<4; j++)
 	{
 		timer_u32[j] = 0;
@@ -65,21 +63,16 @@ uint8_t Groza_t55_main (char* http_req_1)
 	value_i32[3] = (int)(timer_u32[0]-timer_u32[1]);
 	value_i32[4] = (int)(timer_u32[2]-timer_u32[3]);
 
-	sprintf(DataChar,"%d (%d)  %d (%d)\r\n", (int)timer_u32[0], value_i32[3], (int)timer_u32[2], value_i32[4] );
+	int adc_value_U = (int)( ( ADC1_GetValue(ADC_CHANNEL_5         ) * 4 ) / 10) ;
+	int adc_value_T = (int)( ( ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR) * 3 ) / 2 ) ;
+
+	sprintf(DataChar,"%d (%d)  %d (%d) ADC: %d temp: %d\r\n", (int)timer_u32[0], value_i32[3], (int)timer_u32[2], value_i32[4], adc_value_U, adc_value_T );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
-	uint32_t adc_value_U = ( ADC1_GetValue(ADC_CHANNEL_5) * 4) / 10 ;
+	sprintf(http_req_1, "GET /update?api_key=%s&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d\r\n\r\n",
+									THINGSPEAK_API_KEY, value_i32[1], value_i32[2], value_i32[3], value_i32[4], adc_value_U, adc_value_T);
 
-
-	//adc_value_T = ( ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR) *3 ) /2;
-
-
-
-	//char http_req_1[200];
-	sprintf(http_req_1, "GET /update?api_key=%s&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d\r\n\r\n",
-			THINGSPEAK_API_KEY, value_i32[1], value_i32[2], value_i32[3], value_i32[4], adc_value_U);
-
-	return strlen(http_req_1);
+	*size_of_http_req = strlen(http_req_1);
 }
 //*****************************************************************************
 

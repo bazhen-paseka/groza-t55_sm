@@ -9,7 +9,7 @@
 #include "ringbuffer_dma_parol.h"
 
 void Groza_t55_init (void);
-uint8_t Groza_t55_main (char* http_req_1);
+void Groza_t55_main (char* http_req_1, uint8_t* size_of_http_req );
 
 int Value_T55 (uint8_t);
 void Set_Flag_60_Sec(uint8_t);
