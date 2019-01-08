@@ -1,6 +1,8 @@
 #include "groza-t55_sm.h"
 #include <string.h>
 
+#include "average_calc_3_from_5.h"
+
 extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim4;
 extern ADC_HandleTypeDef hadc1;
@@ -18,6 +20,13 @@ extern ADC_HandleTypeDef hadc1;
 void Groza_t55_init (void)
 {
 	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 debug base time\r\nUART1 for debug started\r\nSpeed 38400\r\n");
+	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+
+	#define AVER_QNT 	7
+	uint32_t aver[AVER_QNT] = {60, 50, 40, 30, 20, 10, 0};
+	uint32_t aver_res = Calc_Average(aver, AVER_QNT);
+
+	sprintf(DataChar,"aver_res = %d\r\n", (int)aver_res);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 }
 //*****************************************************************************
@@ -64,7 +73,7 @@ void Groza_t55_main (char* http_req_1, uint8_t* size_of_http_req )
 	value_i32[4] = (int)(timer_u32[2]-timer_u32[3]);
 
 	int adc_value_U = (int)( ( ADC1_GetValue(ADC_CHANNEL_5         ) * 4 ) / 10) ;
-	int adc_value_T = (int)( ( ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR) * 3 ) / 2 ) ;
+	int adc_value_T = (int)( 3700- ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR)       ) ;
 
 	sprintf(DataChar,"%d (%d)  %d (%d) ADC: %d temp: %d\r\n", (int)timer_u32[0], value_i32[3], (int)timer_u32[2], value_i32[4], adc_value_U, adc_value_T );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
