@@ -6,10 +6,11 @@
 #include "usart.h"
 #include "gpio.h"
 
-#include "ringbuffer_dma_parol.h"
+#define DEVICE_QNT 6
+#define CIRCLE_QNT 5
 
 void Groza_t55_init (void);
-void Groza_t55_main (char* http_req_1, uint8_t* size_of_http_req );
+void Groza_t55_main (uint8_t circle, char* http_req_1 );
 
 int Value_T55 (uint8_t);
 void Set_Flag_60_Sec(uint8_t);
