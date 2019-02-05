@@ -5,7 +5,6 @@
 
 extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim4;
-extern ADC_HandleTypeDef hadc1;
 
   char DataChar[100];
 
@@ -121,19 +120,3 @@ void Timer_Update( uint8_t _timer_u8, uint32_t _tim_value_u32)
 }
 //*****************************************************************************
 
-uint32_t ADC1_GetValue(uint32_t channel)
-{
-    /* Config ADC channel */
-    ADC_ChannelConfTypeDef sConfig;
-    sConfig.Channel = channel;
-    sConfig.Rank = 1;
-    //sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-    HAL_ADC_ConfigChannel(&hadc1, &sConfig);
-    /* Start conversion */
-    HAL_ADC_Start(&hadc1);
-    /* Wait until finish */
-    HAL_ADC_PollForConversion(&hadc1, 100);
-    uint32_t value = HAL_ADC_GetValue(&hadc1);
-    return value;
-}
-//*****************************************************************************
