@@ -18,7 +18,7 @@ extern TIM_HandleTypeDef htim4;
 
 void Groza_t55_init (void)
 {
-	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 debug base time\r\nUART1 for debug started\r\nSpeed 38400\r\n");
+	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 v1.4.0 2020-jan-08 debug base time\r\nUART1 for debug started\r\nSpeed 115200\r\n");
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 }
 //*****************************************************************************
@@ -46,7 +46,7 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 )
 	HAL_TIM_Base_Stop(&htim4);
 
 	value_i32[1] = (int)(timer_u32[0] - timer_u32[1]);
-	value_i32[2] = (int)(timer_u32[3] - timer_u32[2]);
+	value_i32[2] = (int)(timer_u32[2] - timer_u32[3]);
 
 	sprintf(DataChar,"%d (%d)  %d (%d)  ", (int)timer_u32[0], (int)value_i32[1], (int)timer_u32[2], (int)value_i32[2] );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
@@ -67,7 +67,7 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 )
 	HAL_TIM_Base_Stop(&htim4);
 
 	value_i32[3] = timer_u32[0]-timer_u32[1];
-	value_i32[4] = timer_u32[2]-timer_u32[3];
+	value_i32[4] = timer_u32[3]-timer_u32[2];
 
 	uint32_t adc_value_U = ( ADC1_GetValue(ADC_CHANNEL_5   ) * 4 ) / 10 ;
 	uint32_t adc_value_T = 3700- ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR)  ;
