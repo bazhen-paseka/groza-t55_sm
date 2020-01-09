@@ -18,6 +18,7 @@ extern TIM_HandleTypeDef htim4;
 
   void Strob_A(void);
   void Strob_B(void);
+  void Strob_delay(uint32_t _delay);
 
 void Groza_t55_init (void) {
 	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 v1.4.0 2020-jan-09\r\nUART1 for debug on speed 115200\r\n");
@@ -110,16 +111,20 @@ void Timer_Update( uint8_t _timer_u8, uint32_t _tim_value_u32) {
 
 void Strob_A(void) {
 	HAL_GPIO_WritePin(STROB14_GPIO_Port, STROB14_Pin, SET);
-	for (int w=0; w<10; w++)
-	  { __asm("nop");}
+	Strob_delay(10);
 	HAL_GPIO_WritePin(STROB14_GPIO_Port, STROB14_Pin, RESET);
 }
 //***************************************************************************
 
 void Strob_B(void) {
 	HAL_GPIO_WritePin(STROB15_GPIO_Port, STROB15_Pin, SET);
-	for (int w=0; w<10; w++)
-	  { __asm("nop");}
+	Strob_delay(10);
 	HAL_GPIO_WritePin(STROB15_GPIO_Port, STROB15_Pin, RESET);
 }
 //***************************************************************************
+
+void Strob_delay(uint32_t _delay) {
+	for (int w=0; w<_delay; w++) {
+		__asm("nop");
+	}
+}
