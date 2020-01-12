@@ -21,7 +21,7 @@ extern TIM_HandleTypeDef htim4;
   void Strob_delay(uint32_t _delay);
 
 void Groza_t55_init (void) {
-	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2020-jan-12 v1.5.0\r\nUART1 for debug on speed 115200\r\n");
+	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2020-jan-12 v1.6.0\r\nUART1 for debug on speed 115200\r\n");
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 }
 //*****************************************************************************
