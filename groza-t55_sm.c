@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "average_calc_3_from_5.h"
+#include "groza-t55_config.h"
 
 extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim4;
@@ -16,9 +17,10 @@ extern TIM_HandleTypeDef htim4;
 
   uint8_t flag_60_sec_u8 = 0;
 
-  void Strobe_X(void);
-  void Strobe_Y(void);
-  void Strobe_delay(uint32_t _delay);
+  void Strobe_X(uint32_t _strobe_duration);
+  void Strobe_Y(uint32_t _strobe_duration);
+  void Strobe_Z(uint32_t _strobe_duration);
+  void Local_delay(uint32_t _delay);
 
 void Groza_t55_init (void) {
 	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2020-jan-12 v1.6.0\r\nUART1 for debug on speed 115200\r\n");
@@ -36,15 +38,14 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 		timer_u32[j] = 0;
 	}
 
-	Strobe_Y();
-
+	Strobe_Y(STROBE_DURATION);
 	TIM4->CNT = 0;
 	HAL_TIM_Base_Start(&htim4);
-	HAL_Delay(500);
+	HAL_Delay(MEASUREMENT_TIME);
 	HAL_TIM_Base_Stop(&htim4);
 
-	value_i32[1] = (int)(timer_u32[0] - timer_u32[1]);
-	value_i32[2] = (int)(timer_u32[2] - timer_u32[3]);
+	value_i32[1] = (timer_u32[0] - timer_u32[1]);
+	value_i32[2] = (timer_u32[2] - timer_u32[3]);
 
 	sprintf(DataChar," %d %d (%d)  %d %d (%d)", (int)timer_u32[0], (int)timer_u32[1], (int)value_i32[1], (int)timer_u32[2], (int)timer_u32[3], (int)value_i32[2] );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
@@ -53,15 +54,14 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 		timer_u32[j] = 0;
 	}
 
-	Strobe_X();
-
+	Strobe_X(STROBE_DURATION);
 	TIM4->CNT = 0;
 	HAL_TIM_Base_Start(&htim4);
-	HAL_Delay(500);
+	HAL_Delay(MEASUREMENT_TIME);
 	HAL_TIM_Base_Stop(&htim4);
 
 	value_i32[3] = timer_u32[0]-timer_u32[1];
-	value_i32[4] = timer_u32[2]-timer_u32[3];
+	value_i32[4] = timer_u32[3]-timer_u32[2];
 
 	uint32_t adc_value_U = ( ADC1_GetValue(ADC_CHANNEL_5   ) * 4 ) / 10 ;
 	uint32_t adc_value_T = 3700- ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR)  ;
@@ -109,22 +109,47 @@ void Timer_Update( uint8_t _timer_u8, uint32_t _tim_value_u32) {
 }
 //*****************************************************************************
 
-void Strobe_Y(void) {
+void Strobe_Y(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_Y_GPIO_Port, STROBE_Y_Pin, SET);
-	Strobe_delay(10);
+	Local_delay(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_Y_GPIO_Port, STROBE_Y_Pin, RESET);
 }
 //***************************************************************************
 
-void Strobe_X(void) {
+void Strobe_X(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_X_GPIO_Port, STROBE_X_Pin, SET);
-	Strobe_delay(10);
+	Local_delay(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_X_GPIO_Port, STROBE_X_Pin, RESET);
 }
 //***************************************************************************
 
-void Strobe_delay(uint32_t _delay) {
-	for (int w=0; w<_delay; w++) {
+void Strobe_Z(uint32_t _strobe_duration) {
+	HAL_GPIO_WritePin(STROBE_Z_GPIO_Port, STROBE_Z_Pin, SET);
+	Local_delay(_strobe_duration);
+	HAL_GPIO_WritePin(STROBE_Z_GPIO_Port, STROBE_Z_Pin, RESET);
+}
+//***************************************************************************
+
+void Local_delay(uint32_t _delay) {
+	for (uint32_t t=0; t<_delay; t++) {
 		__asm("nop");
 	}
 }
+//***************************************************************************
+
+void TestStrobe (void) {
+	do {
+		Strobe_X(STROBE_DURATION);
+		HAL_Delay(200);
+
+		Strobe_Y(STROBE_DURATION);
+		HAL_Delay(200);
+
+		Strobe_Z(STROBE_DURATION);
+		HAL_Delay(200);
+	}
+	while (1);
+}
+//***************************************************************************
+
+//***************************************************************************
