@@ -16,9 +16,9 @@ extern TIM_HandleTypeDef htim4;
 
   uint8_t flag_60_sec_u8 = 0;
 
-  void Strob_A(void);
-  void Strob_B(void);
-  void Strob_delay(uint32_t _delay);
+  void Strobe_X(void);
+  void Strobe_Y(void);
+  void Strobe_delay(uint32_t _delay);
 
 void Groza_t55_init (void) {
 	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2020-jan-12 v1.6.0\r\nUART1 for debug on speed 115200\r\n");
@@ -36,7 +36,7 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 		timer_u32[j] = 0;
 	}
 
-	Strob_A();
+	Strobe_Y();
 
 	TIM4->CNT = 0;
 	HAL_TIM_Base_Start(&htim4);
@@ -53,7 +53,7 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 		timer_u32[j] = 0;
 	}
 
-	Strob_B();
+	Strobe_X();
 
 	TIM4->CNT = 0;
 	HAL_TIM_Base_Start(&htim4);
@@ -61,7 +61,7 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 	HAL_TIM_Base_Stop(&htim4);
 
 	value_i32[3] = timer_u32[0]-timer_u32[1];
-	value_i32[4] = timer_u32[3]-timer_u32[2];
+	value_i32[4] = timer_u32[2]-timer_u32[3];
 
 	uint32_t adc_value_U = ( ADC1_GetValue(ADC_CHANNEL_5   ) * 4 ) / 10 ;
 	uint32_t adc_value_T = 3700- ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR)  ;
@@ -109,21 +109,21 @@ void Timer_Update( uint8_t _timer_u8, uint32_t _tim_value_u32) {
 }
 //*****************************************************************************
 
-void Strob_A(void) {
-	HAL_GPIO_WritePin(STROB14_GPIO_Port, STROB14_Pin, SET);
-	Strob_delay(10);
-	HAL_GPIO_WritePin(STROB14_GPIO_Port, STROB14_Pin, RESET);
+void Strobe_Y(void) {
+	HAL_GPIO_WritePin(STROBE_Y_GPIO_Port, STROBE_Y_Pin, SET);
+	Strobe_delay(10);
+	HAL_GPIO_WritePin(STROBE_Y_GPIO_Port, STROBE_Y_Pin, RESET);
 }
 //***************************************************************************
 
-void Strob_B(void) {
-	HAL_GPIO_WritePin(STROB15_GPIO_Port, STROB15_Pin, SET);
-	Strob_delay(10);
-	HAL_GPIO_WritePin(STROB15_GPIO_Port, STROB15_Pin, RESET);
+void Strobe_X(void) {
+	HAL_GPIO_WritePin(STROBE_X_GPIO_Port, STROBE_X_Pin, SET);
+	Strobe_delay(10);
+	HAL_GPIO_WritePin(STROBE_X_GPIO_Port, STROBE_X_Pin, RESET);
 }
 //***************************************************************************
 
-void Strob_delay(uint32_t _delay) {
+void Strobe_delay(uint32_t _delay) {
 	for (int w=0; w<_delay; w++) {
 		__asm("nop");
 	}
