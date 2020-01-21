@@ -1,8 +1,13 @@
+//
+#define SOFT_VERSION 	151
+//
+
 #include "groza-t55_sm.h"
 #include <string.h>
 
 #include "average_calc_3_from_5.h"
 #include "groza-t55_config.h"
+#include "stdio.h"
 
 extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim4;
@@ -23,7 +28,13 @@ extern TIM_HandleTypeDef htim4;
   void Local_delay(uint32_t _delay);
 
 void Groza_t55_init (void) {
-	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2020-jan-12 v1.6.0\r\nUART1 for debug on speed 115200\r\n");
+	int soft_version_arr_int[3];
+	soft_version_arr_int[0] = ((SOFT_VERSION) / 100)     ;
+	soft_version_arr_int[1] = ((SOFT_VERSION) /  10) %10 ;
+	soft_version_arr_int[2] = ((SOFT_VERSION)      ) %10 ;
+
+	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2020-jan-21 v%d.%d.%d\r\nUART1 for debug on speed 115200\r\n\r\n",
+			soft_version_arr_int[0], soft_version_arr_int[1], soft_version_arr_int[2]);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 }
 //*****************************************************************************
@@ -61,7 +72,7 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 	HAL_TIM_Base_Stop(&htim4);
 
 	value_i32[3] = timer_u32[0]-timer_u32[1];
-	value_i32[4] = timer_u32[3]-timer_u32[2];
+	value_i32[4] = timer_u32[2]-timer_u32[3];
 
 	uint32_t adc_value_U = ( ADC1_GetValue(ADC_CHANNEL_5   ) * 4 ) / 10 ;
 	uint32_t adc_value_T = 3700- ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR)  ;
@@ -138,17 +149,14 @@ void Local_delay(uint32_t _delay) {
 //***************************************************************************
 
 void TestStrobe (void) {
-	do {
-		Strobe_X(STROBE_DURATION);
-		HAL_Delay(200);
+	Strobe_X(STROBE_DURATION);
+	HAL_Delay(200);
 
-		Strobe_Y(STROBE_DURATION);
-		HAL_Delay(200);
+	Strobe_Y(STROBE_DURATION);
+	HAL_Delay(200);
 
-		Strobe_Z(STROBE_DURATION);
-		HAL_Delay(200);
-	}
-	while (1);
+	Strobe_Z(STROBE_DURATION);
+	HAL_Delay(200);
 }
 //***************************************************************************
 
