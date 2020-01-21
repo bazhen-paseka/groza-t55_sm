@@ -1,5 +1,5 @@
 //
-#define SOFT_VERSION 	151
+#define SOFT_VERSION 	160
 //
 
 #include "groza-t55_sm.h"
