@@ -1,16 +1,13 @@
-//
-#define SOFT_VERSION 	160
-//
+//******************************************************************************************
 
-#include "groza-t55_sm.h"
-#include <string.h>
+	#include "groza-t55_sm.h"
 
-#include "average_calc_3_from_5.h"
-#include "groza-t55_config.h"
-#include "stdio.h"
+//******************************************************************************************
 
-extern UART_HandleTypeDef huart1;
-extern TIM_HandleTypeDef htim4;
+	extern UART_HandleTypeDef huart1;
+	extern TIM_HandleTypeDef htim4;
+
+//******************************************************************************************
 
   char DataChar[100];
 
@@ -22,10 +19,19 @@ extern TIM_HandleTypeDef htim4;
 
   uint8_t flag_60_sec_u8 = 0;
 
+	lcd1602_fc113_struct h1_lcd1602_fc113 =
+	{
+		.i2c = &hi2c1,
+		.device_i2c_address = ADR_I2C_FC113
+	};
+
+//******************************************************************************************
+
   void Strobe_X(uint32_t _strobe_duration);
   void Strobe_Y(uint32_t _strobe_duration);
   void Strobe_Z(uint32_t _strobe_duration);
   void Local_delay(uint32_t _delay);
+//******************************************************************************************
 
 void Groza_t55_init (void) {
 	int soft_version_arr_int[3];
@@ -36,6 +42,18 @@ void Groza_t55_init (void) {
 	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2020-jan-21 v%d.%d.%d\r\nUART1 for debug on speed 115200\r\n\r\n",
 			soft_version_arr_int[0], soft_version_arr_int[1], soft_version_arr_int[2]);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+
+	I2Cdev_init(&hi2c1);
+	I2C_ScanBusFlow(&hi2c1, &huart1);
+
+	LCD1602_Init(&h1_lcd1602_fc113);
+	I2C_ScanBus_to_LCD1602(&h1_lcd1602_fc113);
+
+	LCD1602_Clear(&h1_lcd1602_fc113);
+	LCD1602_Cursor_Return(&h1_lcd1602_fc113);
+	sprintf(DataChar,"19zh6 Groza-T55");
+	LCD1602_Print_Line(&h1_lcd1602_fc113, DataChar, strlen(DataChar));
+
 }
 //*****************************************************************************
 
