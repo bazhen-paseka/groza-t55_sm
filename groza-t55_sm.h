@@ -14,6 +14,7 @@
 	#include "adc_light_stm32f103_hal_sm.h"
 	#include "lcd1602_fc113_sm.h"
 	#include "i2c_techmaker_sm.h"
+	#include "nRF24L01_sm.h"
 
 //******************************************************************************************
 
