@@ -25,6 +25,17 @@
 		.device_i2c_address = ADR_I2C_FC113
 	};
 
+	uint8_t  dataIn[32];
+	NRF24L01_Transmit_Status_t transmissionStatus;	/* NRF transmission status */
+
+	#ifdef SLAVE_21
+		uint8_t MyAddress[] = { 0, 0, 0, 0, 0x21 };	/* My address */
+		uint8_t TxAddress[] = { 0, 0, 0, 0, 0x10 };	/* Other end address */
+	#endif
+
+	uint32_t lastTime = 0;
+	int16_t  waitTime = 0;
+
 //******************************************************************************************
 
   void Strobe_X(uint32_t _strobe_duration);
@@ -54,6 +65,10 @@ void Groza_t55_init (void) {
 	sprintf(DataChar,"19zh6 Groza-T55");
 	LCD1602_Print_Line(&h1_lcd1602_fc113, DataChar, strlen(DataChar));
 
+	NRF24L01_Init(&hspi2, MY_CHANNEL, 32);
+	NRF24L01_SetRF(NRF24L01_DataRate_250k, NRF24L01_OutputPower_M6dBm);	/* Set 250kBps data rate and -6dBm output power */
+	NRF24L01_SetMyAddress(MyAddress);	/* Set my address, 5 bytes */
+	LCD1602_Clear(&h1_lcd1602_fc113);
 }
 //*****************************************************************************
 
@@ -178,4 +193,49 @@ void TestStrobe (void) {
 }
 //***************************************************************************
 
+void NRF24L01_Module(void) {
+	if (NRF24L01_DataReady()) {	/* If data is ready on NRF24L01+ */
+		NRF24L01_GetData(dataIn);	/* Get data from NRF24L01+ */
+		HAL_Delay(1);
+		sprintf(DataChar,"%s", dataIn);
+		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+		LCD1602_Cursor_Return(&h1_lcd1602_fc113);
+		LCD1602_Print_Line(&h1_lcd1602_fc113, DataChar, strlen(DataChar));
+
+		/* Send it back, automatically goes to TX mode */
+		NRF24L01_SetTxAddress(TxAddress);	/* Set TX address, 5 bytes */
+		NRF24L01_Transmit(dataIn);
+		/* Wait for data to be sent */
+		do {		/* Wait till sending */
+			transmissionStatus = NRF24L01_GetTransmissionStatus();
+		} while (transmissionStatus == NRF24L01_Transmit_Status_Sending);
+		/* Send done */
+
+		if (transmissionStatus == NRF24L01_Transmit_Status_Ok) {	/* Check data & transmit status */
+			sprintf(DataChar,"; Send back: OK\r\n");				/* Transmit went OK */
+		} else {
+			sprintf(DataChar,"; Send back: ERROR\r\n");			/* Message was LOST */
+		}
+		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+
+		NRF24L01_PowerUpRx();	/* Go back to RX mode */
+		waitTime = 0;
+	} else {
+		if (HAL_GetTick() - lastTime > 250) {
+			if (waitTime == 0) {
+				sprintf(DataChar,"Waiting for data");
+				waitTime++;
+			} else if (waitTime > 17) {
+				sprintf(DataChar,"\r\n");
+				waitTime = 0;
+			} else {
+				sprintf(DataChar,".");
+				waitTime++;
+			}
+			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+			lastTime = HAL_GetTick();
+		}
+	}
+//****************************************************************************************
+}
 //***************************************************************************
