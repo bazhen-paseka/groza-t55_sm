@@ -73,7 +73,9 @@ void Groza_t55_init (void) {
 //*****************************************************************************
 
 void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
-	uint32_t value_i32[4];
+	uint32_t 	value_i32[4];
+	uint32_t 	adc_value_U = ( ADC1_GetValue( ADC_CHANNEL_5 ) * 4 ) / 10 ;
+	uint32_t 	adc_value_T = 3700 - ADC1_GetValue( ADC_CHANNEL_TEMPSENSOR ) ;
 
 	sprintf(DataChar,"%d)", (int)circle);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
@@ -89,9 +91,15 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 	HAL_TIM_Base_Stop(&htim4);
 
 	value_i32[1] = (timer_u32[0] - timer_u32[1]);
-	value_i32[2] = (timer_u32[2] - timer_u32[3]);
+	value_i32[2] = (timer_u32[3] - timer_u32[2]);
 
-	sprintf(DataChar," %d %d (%d)  %d %d (%d)", (int)timer_u32[0], (int)timer_u32[1], (int)value_i32[1], (int)timer_u32[2], (int)timer_u32[3], (int)value_i32[2] );
+	sprintf(DataChar," %04d %04d (%03d)  %04d %04d (%03d)",
+						(int)timer_u32[0],
+						(int)timer_u32[1],
+						(int)value_i32[1],
+						(int)timer_u32[2],
+						(int)timer_u32[3],
+						(int)value_i32[2] );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
 	for (int j=0; j<4; j++)	{
@@ -107,11 +115,18 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 	value_i32[3] = timer_u32[0]-timer_u32[1];
 	value_i32[4] = timer_u32[2]-timer_u32[3];
 
-	uint32_t adc_value_U = ( ADC1_GetValue(ADC_CHANNEL_5   ) * 4 ) / 10 ;
-	uint32_t adc_value_T = 3700- ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR)  ;
+	adc_value_U = ( ADC1_GetValue(ADC_CHANNEL_5   ) * 4 ) / 10 ;
+	adc_value_T = 3700- ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR)  ;
 
-	sprintf(DataChar,"  %d %d (%d)  %d %d (%d)  %dV  %dC\r\n",
-			(int)timer_u32[0], (int)timer_u32[1], (int)value_i32[3], (int)timer_u32[2], (int)timer_u32[3], (int)value_i32[4], (int)adc_value_U, (int)adc_value_T );
+	sprintf(DataChar,"  %04d %04d (%03d)  %04d %04d (%03d)  %04dV  %04dC\r\n",
+						(int)timer_u32[0],
+						(int)timer_u32[1],
+						(int)value_i32[3],
+						(int)timer_u32[2],
+						(int)timer_u32[3],
+						(int)value_i32[4],
+						(int)adc_value_U,
+						(int)adc_value_T );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
 	main_value_u32[0][circle] = value_i32[1];
@@ -133,17 +148,22 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 		}
 	sprintf(http_req_1, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d\r\n\r\n",
-			(int)aver_res_u32[0], (int)aver_res_u32[1], (int)aver_res_u32[2], (int)aver_res_u32[3], (int)aver_res_u32[4], (int)aver_res_u32[5] );
+						(int)aver_res_u32[0],
+						(int)aver_res_u32[1],
+						(int)aver_res_u32[2],
+						(int)aver_res_u32[3],
+						(int)aver_res_u32[4],
+						(int)aver_res_u32[5] );
 	}
 }
 //*****************************************************************************
 
-void Set_Flag_60_Sec(uint8_t _flag)	{
+void Set_Flag_1_Sec(uint8_t _flag)	{
 	flag_60_sec_u8 = _flag;
 }
 //*****************************************************************************
 
-uint8_t Get_Flag_60_Sec(void) {
+uint8_t Get_Flag_1_Sec(void) {
 	return flag_60_sec_u8;
 }
 //*****************************************************************************
@@ -181,7 +201,7 @@ void Local_delay(uint32_t _delay) {
 }
 //***************************************************************************
 
-void TestStrobe (void) {
+void TestStrobe (uint8_t _counter) {
 	Strobe_X(STROBE_DURATION);
 	HAL_Delay(200);
 
@@ -190,6 +210,11 @@ void TestStrobe (void) {
 
 	Strobe_Z(STROBE_DURATION);
 	HAL_Delay(200);
+
+	char uart_buffer[0xFF];
+	sprintf(uart_buffer,"counter %02d", _counter );
+	LCD1602_Cursor_Return(&h1_lcd1602_fc113);
+	LCD1602_Print_Line(&h1_lcd1602_fc113, uart_buffer, strlen(uart_buffer));
 }
 //***************************************************************************
 
@@ -236,6 +261,5 @@ void NRF24L01_Module(void) {
 			lastTime = HAL_GetTick();
 		}
 	}
-//****************************************************************************************
 }
 //***************************************************************************
