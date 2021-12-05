@@ -50,25 +50,25 @@ void Groza_t55_init (void) {
 	soft_version_arr_int[1] = ((SOFT_VERSION) /  10) %10 ;
 	soft_version_arr_int[2] = ((SOFT_VERSION)      ) %10 ;
 
-	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2020-jan-21 v%d.%d.%d\r\nUART1 for debug on speed 115200\r\n\r\n",
+	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2021-dec-05 v%d.%d.%d\r\nUART1 for debug on speed 115200\r\n\r\n",
 			soft_version_arr_int[0], soft_version_arr_int[1], soft_version_arr_int[2]);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
-	I2Cdev_init(&hi2c1);
-	I2C_ScanBusFlow(&hi2c1, &huart1);
+//	I2Cdev_init(&hi2c1);
+//	I2C_ScanBusFlow(&hi2c1, &huart1);
+//
+//	LCD1602_Init(&h1_lcd1602_fc113);
+//	I2C_ScanBus_to_LCD1602(&h1_lcd1602_fc113);
+//
+//	LCD1602_Clear(&h1_lcd1602_fc113);
+//	LCD1602_Cursor_Return(&h1_lcd1602_fc113);
+//	sprintf(DataChar,"19zh6 Groza-T55");
+//	LCD1602_Print_Line(&h1_lcd1602_fc113, DataChar, strlen(DataChar));
 
-	LCD1602_Init(&h1_lcd1602_fc113);
-	I2C_ScanBus_to_LCD1602(&h1_lcd1602_fc113);
-
-	LCD1602_Clear(&h1_lcd1602_fc113);
-	LCD1602_Cursor_Return(&h1_lcd1602_fc113);
-	sprintf(DataChar,"19zh6 Groza-T55");
-	LCD1602_Print_Line(&h1_lcd1602_fc113, DataChar, strlen(DataChar));
-
-	NRF24L01_Init(&hspi2, MY_CHANNEL, 32);
-	NRF24L01_SetRF(NRF24L01_DataRate_250k, NRF24L01_OutputPower_M6dBm);	/* Set 250kBps data rate and -6dBm output power */
-	NRF24L01_SetMyAddress(MyAddress);	/* Set my address, 5 bytes */
-	LCD1602_Clear(&h1_lcd1602_fc113);
+//	NRF24L01_Init(&hspi2, MY_CHANNEL, 32);
+//	NRF24L01_SetRF(NRF24L01_DataRate_250k, NRF24L01_OutputPower_M6dBm);	/* Set 250kBps data rate and -6dBm output power */
+//	NRF24L01_SetMyAddress(MyAddress);	/* Set my address, 5 bytes */
+//	LCD1602_Clear(&h1_lcd1602_fc113);
 }
 //*****************************************************************************
 
@@ -213,8 +213,8 @@ void TestStrobe (uint8_t _counter) {
 
 	char uart_buffer[0xFF];
 	sprintf(uart_buffer,"counter %02d", _counter );
-	LCD1602_Cursor_Return(&h1_lcd1602_fc113);
-	LCD1602_Print_Line(&h1_lcd1602_fc113, uart_buffer, strlen(uart_buffer));
+//	LCD1602_Cursor_Return(&h1_lcd1602_fc113);
+//	LCD1602_Print_Line(&h1_lcd1602_fc113, uart_buffer, strlen(uart_buffer));
 }
 //***************************************************************************
 
