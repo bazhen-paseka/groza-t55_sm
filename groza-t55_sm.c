@@ -74,8 +74,8 @@ void Groza_t55_init (void) {
 
 void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 	uint32_t 	value_i32[4];
-	uint32_t 	adc_value_U = ( ADC1_GetValue( ADC_CHANNEL_5 ) * 4 ) / 10 ;
-	uint32_t 	adc_value_T = 3700 - ADC1_GetValue( ADC_CHANNEL_TEMPSENSOR ) ;
+//	uint32_t 	adc_value_U = ( ADC1_GetValue( ADC_CHANNEL_5 ) * 4 ) / 10 ;
+//	uint32_t 	adc_value_T = 3700 - ADC1_GetValue( ADC_CHANNEL_TEMPSENSOR ) ;
 
 	sprintf(DataChar,"%d)", (int)circle);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
@@ -115,8 +115,8 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 	value_i32[3] = timer_u32[0]-timer_u32[1];
 	value_i32[4] = timer_u32[2]-timer_u32[3];
 
-	adc_value_U = ( ADC1_GetValue(ADC_CHANNEL_5   ) * 4 ) / 10 ;
-	adc_value_T = 3700- ADC1_GetValue(ADC_CHANNEL_TEMPSENSOR)  ;
+	uint32_t adc_value_U = 		(	ADC1_GetValue( &hadc1, ADC_CHANNEL_5		 ) * 4 ) / 10 ;
+	uint32_t adc_value_T = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
 
 	sprintf(DataChar,"  %04d %04d (%03d)  %04d %04d (%03d)  %04dV  %04dC\r\n",
 						(int)timer_u32[0],
