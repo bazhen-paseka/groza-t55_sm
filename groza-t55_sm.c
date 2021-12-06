@@ -41,7 +41,7 @@
   void Strobe_X(uint32_t _strobe_duration);
   void Strobe_Y(uint32_t _strobe_duration);
   void Strobe_Z(uint32_t _strobe_duration);
-  void Local_delay(uint32_t _delay);
+  void local_delay(uint32_t _delay);
 //******************************************************************************************
 
 void Groza_t55_init (void) {
@@ -72,10 +72,8 @@ void Groza_t55_init (void) {
 }
 //*****************************************************************************
 
-void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
+void Groza_t55_main (uint8_t circle, char* http_req_1, char* http_req_2  ) {
 	uint32_t 	value_i32[8];
-//	uint32_t 	adc_value_U = ( ADC1_GetValue( ADC_CHANNEL_5 ) * 4 ) / 10 ;
-//	uint32_t 	adc_value_T = 3700 - ADC1_GetValue( ADC_CHANNEL_TEMPSENSOR ) ;
 
 	sprintf(DataChar,"%d)", (int)circle);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
@@ -137,19 +135,20 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 	main_value_u32[5][circle] = value_i32[5];
 	main_value_u32[6][circle] = value_i32[6];
 	main_value_u32[7][circle] = value_i32[7];
-
+	main_value_u32[8][circle] = adc_value_U ;
+	main_value_u32[9][circle] = adc_value_T ;
 
 	if (circle == CIRCLE_QNT-1)	{
 		sprintf(DataChar,"\r\n" );
 		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 		uint32_t aver_res_u32[DEVICE_QNT];
-		for (uint8_t c = 0; c < DEVICE_QNT; c++) {
-			sprintf(DataChar,"%d) ", (int)(c+1) );
+		for (uint8_t pipe = 0; pipe < DEVICE_QNT; pipe++) {
+			sprintf(DataChar,"%d) ", (int)(pipe+1) );
 			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
-			aver_res_u32[c] = Calc_Average(main_value_u32[c], CIRCLE_QNT);
+			aver_res_u32[pipe] = Calc_Average(main_value_u32[pipe], CIRCLE_QNT);
 
-			sprintf(DataChar," (%d)\r\n", (int)aver_res_u32[c] );
+			sprintf(DataChar," (%d)\r\n", (int)aver_res_u32[pipe] );
 			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 		}
 		sprintf(http_req_1, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
@@ -161,6 +160,9 @@ void Groza_t55_main (uint8_t circle, char* http_req_1 ) {
 						(int)aver_res_u32[5],
 						(int)aver_res_u32[6],
 						(int)aver_res_u32[7] );
+		sprintf(http_req_2, "&field1=%d&field2=%d\r\n\r\n",
+						(int)aver_res_u32[8],
+						(int)aver_res_u32[9] );
 		sprintf(DataChar,"\r\n" );
 		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100) ;
 	}

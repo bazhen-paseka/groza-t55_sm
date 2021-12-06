@@ -20,7 +20,7 @@
 //******************************************************************************************
 
 	void Groza_t55_init 	( void );
-	void Groza_t55_main 	( uint8_t circle, char* http_req_1 );
+	void Groza_t55_main 	( uint8_t, char*, char* );
 	void NRF24L01_Module	( void );
 	int Value_T55 			( uint8_t );
 	void Set_Flag_1_Sec		( uint8_t );
