@@ -131,7 +131,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	myStr->point_u32[8][circle] = adc_value_U ;
 	myStr->point_u32[9][circle] = adc_value_T ;
 
-	sprintf(DataChar,"%05d %05d\t%05d %05d\t%05d %05d\t%05d %05d\t%05d %05d\r\n",
+	sprintf(DataChar,"\t%05d %05d\t%05d %05d\t%05d %05d\t%05d %05d\t%05d %05d\r\n",
 						(int)myStr->point_u32[0][circle],
 						(int)myStr->point_u32[1][circle],
 						(int)myStr->point_u32[2][circle],
