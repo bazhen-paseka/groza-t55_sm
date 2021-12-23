@@ -148,9 +148,6 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 
 //*****************************************************************************
 
-void Groza_t55_main (uint8_t circle, char* http_req_1, char* http_req_2  ) {
-
-}
 //*****************************************************************************
 
 void Set_Flag_1_Sec(uint8_t _flag)	{

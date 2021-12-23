@@ -25,7 +25,6 @@
 //******************************************************************************************
 
 	void Groza_t55_init 	( void );
-	void Groza_t55_main 	( uint8_t, char*, char* );
 	void Groza_t55_test 	( void );
 	void NRF24L01_Module	( void );
 	void Set_Flag_1_Sec		( uint8_t );
