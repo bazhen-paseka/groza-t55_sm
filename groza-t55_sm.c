@@ -245,87 +245,87 @@ void local_delay(uint32_t _delay) {
 //***************************************************************************
 
 //*****************************************************************************
-
-void Groza_t55_test ( void ) {
-	uint32_t 	value_i32[12];
-
-	for (int j=0; j<TIM_QNT; j++) {
-		timer_u32[j] = 0;
-	}
-
-	Strobe_X(STROBE_DURATION);
-	TIM4->CNT = 0;
-	HAL_TIM_Base_Start(&htim4);
-	HAL_Delay(MEASUREMENT_TIME);
-	HAL_TIM_Base_Stop(&htim4);
-
-	value_i32[0] = timer_u32[0] ;
-	value_i32[1] = timer_u32[1] ;
-	value_i32[2] = timer_u32[2] ;
-	value_i32[3] = timer_u32[3] ;
-
-	HAL_Delay(10);
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
-	HAL_Delay( 5);
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
-	HAL_Delay(50);
-
-	for (int j=0; j<TIM_QNT; j++)	{
-		timer_u32[j] = 0;
-	}
-
-	Strobe_Y(STROBE_DURATION);
-	TIM4->CNT = 0;
-	HAL_TIM_Base_Start(&htim4);
-	HAL_Delay(MEASUREMENT_TIME);
-	HAL_TIM_Base_Stop(&htim4);
-
-	value_i32[4] = timer_u32[0] ;
-	value_i32[5] = timer_u32[1] ;
-	value_i32[6] = timer_u32[2] ;
-	value_i32[7] = timer_u32[3] ;
-
-	HAL_Delay(10);
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
-	HAL_Delay( 5);
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
-	HAL_Delay(50);
-
-	for (int j=0; j<TIM_QNT; j++)	{
-		timer_u32[j] = 0;
-	}
-
-	Strobe_Z(STROBE_DURATION);
-	TIM4->CNT = 0;
-	HAL_TIM_Base_Start(&htim4);
-	HAL_Delay(MEASUREMENT_TIME);
-	HAL_TIM_Base_Stop(&htim4);
-
-	value_i32[ 8] = timer_u32[0] ;
-	value_i32[ 9] = timer_u32[1] ;
-	value_i32[10] = timer_u32[2] ;
-	value_i32[11] = timer_u32[3] ;
-
-	HAL_Delay(10);
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
-	HAL_Delay(5);
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
-	HAL_Delay(50);
-
-	uint32_t adc_value_U = 		(	ADC1_GetValue( &hadc1, ADC_CHANNEL_5		 ) * 4 ) / 10 ;
-	uint32_t adc_value_T = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
-
-	sprintf(DataChar,"%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%04d\t%04d\r\n",
-						(int)value_i32[0],
-						(int)value_i32[1],
-						(int)value_i32[2],
-						(int)value_i32[3],
-						(int)value_i32[4],
-						(int)value_i32[5],
-						(int)value_i32[6],
-						(int)value_i32[7],
-						(int)adc_value_U,
-						(int)adc_value_T );
-	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-}
+//
+//void Groza_t55_test ( void ) {
+//	uint32_t 	value_i32[12];
+//
+//	for (int j=0; j<TIM_QNT; j++) {
+//		timer_u32[j] = 0;
+//	}
+//
+//	Strobe_X(STROBE_DURATION);
+//	TIM4->CNT = 0;
+//	HAL_TIM_Base_Start(&htim4);
+//	HAL_Delay(MEASUREMENT_TIME);
+//	HAL_TIM_Base_Stop(&htim4);
+//
+//	value_i32[0] = timer_u32[0] ;
+//	value_i32[1] = timer_u32[1] ;
+//	value_i32[2] = timer_u32[2] ;
+//	value_i32[3] = timer_u32[3] ;
+//
+//	HAL_Delay(10);
+//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
+//	HAL_Delay( 5);
+//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
+//	HAL_Delay(50);
+//
+//	for (int j=0; j<TIM_QNT; j++)	{
+//		timer_u32[j] = 0;
+//	}
+//
+//	Strobe_Y(STROBE_DURATION);
+//	TIM4->CNT = 0;
+//	HAL_TIM_Base_Start(&htim4);
+//	HAL_Delay(MEASUREMENT_TIME);
+//	HAL_TIM_Base_Stop(&htim4);
+//
+//	value_i32[4] = timer_u32[0] ;
+//	value_i32[5] = timer_u32[1] ;
+//	value_i32[6] = timer_u32[2] ;
+//	value_i32[7] = timer_u32[3] ;
+//
+//	HAL_Delay(10);
+//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
+//	HAL_Delay( 5);
+//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
+//	HAL_Delay(50);
+//
+//	for (int j=0; j<TIM_QNT; j++)	{
+//		timer_u32[j] = 0;
+//	}
+//
+//	Strobe_Z(STROBE_DURATION);
+//	TIM4->CNT = 0;
+//	HAL_TIM_Base_Start(&htim4);
+//	HAL_Delay(MEASUREMENT_TIME);
+//	HAL_TIM_Base_Stop(&htim4);
+//
+//	value_i32[ 8] = timer_u32[0] ;
+//	value_i32[ 9] = timer_u32[1] ;
+//	value_i32[10] = timer_u32[2] ;
+//	value_i32[11] = timer_u32[3] ;
+//
+//	HAL_Delay(10);
+//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
+//	HAL_Delay(5);
+//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
+//	HAL_Delay(50);
+//
+//	uint32_t adc_value_U = 		(	ADC1_GetValue( &hadc1, ADC_CHANNEL_5		 ) * 4 ) / 10 ;
+//	uint32_t adc_value_T = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
+//
+//	sprintf(DataChar,"%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%04d\t%04d\r\n",
+//						(int)value_i32[0],
+//						(int)value_i32[1],
+//						(int)value_i32[2],
+//						(int)value_i32[3],
+//						(int)value_i32[4],
+//						(int)value_i32[5],
+//						(int)value_i32[6],
+//						(int)value_i32[7],
+//						(int)adc_value_U,
+//						(int)adc_value_T );
+//	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+//}
 //*****************************************************************************
