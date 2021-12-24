@@ -25,13 +25,12 @@
 //******************************************************************************************
 
 	void Groza_t55_init 	( void );
-	void Groza_t55_main 	( uint8_t, char*, char* );
 	void Groza_t55_test 	( void );
 	void NRF24L01_Module	( void );
 	void Set_Flag_1_Sec		( uint8_t );
 	uint8_t Get_Flag_1_Sec	( void );
 	void Timer_Update		( uint8_t _timer_u8, uint32_t _tim_value_u32 );
-	void Measurement 		(PointStr *myStr, uint8_t circle) ;
+	void Measurement 		( PointStr *myStr, uint8_t circle) ;
 
 //******************************************************************************************
 #endif
