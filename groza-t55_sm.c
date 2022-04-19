@@ -51,7 +51,12 @@ void Groza_t55_init (void) {
 
 	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2021-dec-13 v%d.%d.%d\r\nUART1 for debug on speed 115200\r\n\r\n",
 			soft_version_arr_int[0], soft_version_arr_int[1], soft_version_arr_int[2]);
-	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, sizeof(DataChar), 100);
+
+	#define DATE_as_int_str 	(__DATE__)
+	#define TIME_as_int_str 	(__TIME__)
+	sprintf(DataChar,"\r\n\tBuild: %s. Time: %s." , DATE_as_int_str , TIME_as_int_str ) ;
+	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , sizeof(DataChar) , 100 ) ;
 
 //	I2Cdev_init(&hi2c1);
 //	I2C_ScanBusFlow(&hi2c1, &huart1);
