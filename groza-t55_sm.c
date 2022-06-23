@@ -95,6 +95,11 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	value_i32[2] = timer_u32[2] ;
 	value_i32[3] = timer_u32[3] ;
 
+	myStr->zerone_u32[0] += value_i32[0] % 2 ;
+	myStr->zerone_u32[1] += value_i32[1] % 2 ;
+	myStr->zerone_u32[2] += value_i32[2] % 2 ;
+	myStr->zerone_u32[3] += value_i32[3] % 2 ;
+
 	HAL_Delay(10);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
 	HAL_Delay( 5);
@@ -116,6 +121,11 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	value_i32[6] = timer_u32[2] ;
 	value_i32[7] = timer_u32[3] ;
 
+	myStr->zerone_u32[4] += value_i32[4] % 2 ;
+	myStr->zerone_u32[5] += value_i32[5] % 2 ;
+	myStr->zerone_u32[6] += value_i32[6] % 2 ;
+	myStr->zerone_u32[7] += value_i32[7] % 2 ;
+
 	HAL_Delay(10);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
 	HAL_Delay( 5);
@@ -136,7 +146,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	myStr->point_u32[8][circle] = adc_value_U ;
 	myStr->point_u32[9][circle] = adc_value_T ;
 
-	sprintf(DataChar,"\t%05d %05d\t%05d %05d\t%05d %05d\t%05d %05d\t%05d %05d\r\n",
+	sprintf(DataChar,"\t%05d %05d\t%05d %05d\t%05d %05d\t%05d %05d\t%05d %05d",
 						(int)myStr->point_u32[0][circle],
 						(int)myStr->point_u32[1][circle],
 						(int)myStr->point_u32[2][circle],
@@ -147,6 +157,17 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 						(int)myStr->point_u32[7][circle],
 						(int)myStr->point_u32[8][circle],
 						(int)myStr->point_u32[9][circle] );
+	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+
+	sprintf(DataChar,"\t %02d %02d %02d %02d %02d %02d %02d %02d \r\n",
+						(int) myStr->zerone_u32[0] ,
+						(int) myStr->zerone_u32[1] ,
+						(int) myStr->zerone_u32[2] ,
+						(int) myStr->zerone_u32[3] ,
+						(int) myStr->zerone_u32[4] ,
+						(int) myStr->zerone_u32[5] ,
+						(int) myStr->zerone_u32[6] ,
+						(int) myStr->zerone_u32[7] ) ;
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 }
 
