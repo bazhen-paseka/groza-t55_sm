@@ -80,7 +80,7 @@ void Groza_t55_init (void) {
 //*****************************************************************************
 
 void Measurement (PointStr *myStr, uint8_t circle) {
-	uint32_t 	value_i32[8];
+	uint32_t 	value_i32[DEVICE_QNT];
 	sprintf(DataChar,"%d)", (int)circle);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
@@ -168,8 +168,8 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	HAL_Delay(50);
 		// ZONE Z
 
-	uint32_t adc_value_U1 = 	(	ADC1_GetValue( &hadc1, ADC_CHANNEL_5		 ) * 4 ) / 10 ;
-	uint32_t adc_value_U2 = 	(	ADC1_GetValue( &hadc1, ADC_CHANNEL_6		 ) * 4 ) / 10 ;
+	uint32_t adc_value_U1 = ADC1_GetValue( &hadc1, ADC_CHANNEL_5 ) ;
+	uint32_t adc_value_U2 = ADC1_GetValue( &hadc1, ADC_CHANNEL_6 ) ;
 	uint32_t adc_value_T0 = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
 
 	myStr->point_u32[ 0][circle] = value_i32[ 0];
