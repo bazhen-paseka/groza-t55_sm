@@ -169,7 +169,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 		// ZONE Z
 
 	uint32_t adc_value_U1 = ADC1_GetValue( &hadc1, ADC_CHANNEL_5 ) ;
-	uint32_t adc_value_U2 = ADC1_GetValue( &hadc1, ADC_CHANNEL_6 ) ;
+///	uint32_t adc_value_U2 = ADC1_GetValue( &hadc1, ADC_CHANNEL_6 ) ;	///	the temperature is now right
 	uint32_t adc_value_T0 = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
 
 	myStr->point_u32[ 0][circle] = value_i32[ 0];
@@ -189,7 +189,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 
 
 	myStr->point_u32[12][circle] = adc_value_U1;
-	myStr->point_u32[13][circle] = adc_value_U2;
+///	myStr->point_u32[13][circle] = adc_value_U2;	///	the temperature is now right
 	myStr->point_u32[14][circle] = adc_value_T0 ;
 
 	sprintf(DataChar," x0:%05d %05d x1:%05d %05d  y0:%05d %05d y1:%05d %05d  z0:%05d %05d z1:%05d %05d U1:%04d U2:%04d T0:%04d",
