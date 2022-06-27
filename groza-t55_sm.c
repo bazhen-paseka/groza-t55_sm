@@ -40,7 +40,7 @@
   void Strobe_X(uint32_t _strobe_duration);
   void Strobe_Y(uint32_t _strobe_duration);
   void Strobe_Z(uint32_t _strobe_duration);
-  void local_delay(uint32_t _delay);
+  void local_delay_GRZ(uint32_t _delay);
 //******************************************************************************************
 
 void Groza_t55_init (void) {
@@ -252,26 +252,26 @@ void Timer_Update( uint8_t _timer_u8, uint32_t _tim_value_u32) {
 
 void Strobe_Y(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_Y_GPIO_Port, STROBE_Y_Pin, SET);
-	local_delay(_strobe_duration);
+	local_delay_GRZ(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_Y_GPIO_Port, STROBE_Y_Pin, RESET);
 }
 //***************************************************************************
 
 void Strobe_X(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_X_GPIO_Port, STROBE_X_Pin, SET);
-	local_delay(_strobe_duration);
+	local_delay_GRZ(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_X_GPIO_Port, STROBE_X_Pin, RESET);
 }
 //***************************************************************************
 
 void Strobe_Z(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_Z_GPIO_Port, STROBE_Z_Pin, SET);
-	local_delay(_strobe_duration);
+	local_delay_GRZ(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_Z_GPIO_Port, STROBE_Z_Pin, RESET);
 }
 //***************************************************************************
 
-void local_delay(uint32_t _delay) {
+void local_delay_GRZ(uint32_t _delay) {
 	for (uint32_t t=0; t<_delay; t++) {
 		__asm("nop");
 	}
