@@ -40,7 +40,7 @@
   void Strobe_X(uint32_t _strobe_duration);
   void Strobe_Y(uint32_t _strobe_duration);
   void Strobe_Z(uint32_t _strobe_duration);
-  void local_delay(uint32_t _delay);
+  void local_delay_GRZ(uint32_t _delay);
 //******************************************************************************************
 
 void Groza_t55_init (void) {
@@ -49,37 +49,42 @@ void Groza_t55_init (void) {
 	soft_version_arr_int[1] = ((SOFT_VERSION) /  10) %10 ;
 	soft_version_arr_int[2] = ((SOFT_VERSION)      ) %10 ;
 
-	sprintf(DataChar,"\r\n19ZH36 GROZA-T55 2021-dec-13 v%d.%d.%d\r\nUART1 for debug on speed 115200\r\n\r\n",
+	sprintf(DataChar,"\r\n\t 19ZH36 GROZA-T55 v%d.%d.%d\r\n",
 			soft_version_arr_int[0], soft_version_arr_int[1], soft_version_arr_int[2]);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, sizeof(DataChar), 100);
 
 	#define DATE_as_int_str 	(__DATE__)
 	#define TIME_as_int_str 	(__TIME__)
-	sprintf(DataChar,"\r\n\tBuild: %s. Time: %s." , DATE_as_int_str , TIME_as_int_str ) ;
+	sprintf(DataChar,"\t build: %s time: %s\r\n" , DATE_as_int_str , TIME_as_int_str ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , sizeof(DataChar) , 100 ) ;
 
-//	I2Cdev_init(&hi2c1);
-//	I2C_ScanBusFlow(&hi2c1, &huart1);
-//
-//	LCD1602_Init(&h1_lcd1602_fc113);
-//	I2C_ScanBus_to_LCD1602(&h1_lcd1602_fc113);
-//
-//	LCD1602_Clear(&h1_lcd1602_fc113);
-//	LCD1602_Cursor_Return(&h1_lcd1602_fc113);
-//	sprintf(DataChar,"19zh6 Groza-T55");
-//	LCD1602_Print_Line(&h1_lcd1602_fc113, DataChar, strlen(DataChar));
+	sprintf(DataChar,"\t UART1 for debug on speed 115200\r\n");
+	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, sizeof(DataChar), 100);
 
-//	NRF24L01_Init(&hspi2, MY_CHANNEL, 32);
-//	NRF24L01_SetRF(NRF24L01_DataRate_250k, NRF24L01_OutputPower_M6dBm);	/* Set 250kBps data rate and -6dBm output power */
-//	NRF24L01_SetMyAddress(MyAddress);	/* Set my address, 5 bytes */
-//	LCD1602_Clear(&h1_lcd1602_fc113);
+	//	I2Cdev_init(&hi2c1);
+	//	I2C_ScanBusFlow(&hi2c1, &huart1);
+	//
+	//	LCD1602_Init(&h1_lcd1602_fc113);
+	//	I2C_ScanBus_to_LCD1602(&h1_lcd1602_fc113);
+	//
+	//	LCD1602_Clear(&h1_lcd1602_fc113);
+	//	LCD1602_Cursor_Return(&h1_lcd1602_fc113);
+	//	sprintf(DataChar,"19zh6 Groza-T55");
+	//	LCD1602_Print_Line(&h1_lcd1602_fc113, DataChar, strlen(DataChar));
+
+	//	NRF24L01_Init(&hspi2, MY_CHANNEL, 32);
+	//	NRF24L01_SetRF(NRF24L01_DataRate_250k, NRF24L01_OutputPower_M6dBm);	/* Set 250kBps data rate and -6dBm output power */
+	//	NRF24L01_SetMyAddress(MyAddress);	/* Set my address, 5 bytes */
+	//	LCD1602_Clear(&h1_lcd1602_fc113);
 }
 //*****************************************************************************
+
 void Measurement (PointStr *myStr, uint8_t circle) {
-	uint32_t 	value_i32[8];
+	uint32_t 	value_i32[DEVICE_QNT];
 	sprintf(DataChar,"%d)", (int)circle);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
+		// ZONE X
 	for (int j=0; j<TIM_QNT; j++) {
 		timer_u32[j] = 0;
 	}
@@ -105,7 +110,9 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	HAL_Delay( 5);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
 	HAL_Delay(50);
+		// ZONE X
 
+		// ZONE Y
 	for (int j=0; j<TIM_QNT; j++)	{
 		timer_u32[j] = 0;
 	}
@@ -131,43 +138,91 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	HAL_Delay( 5);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
 	HAL_Delay(50);
+		// ZONE Y
 
-	uint32_t adc_value_U = 		(	ADC1_GetValue( &hadc1, ADC_CHANNEL_5		 ) * 4 ) / 10 ;
-	uint32_t adc_value_T = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
+		// ZONE Z
+	for (int j=0; j<TIM_QNT; j++)	{
+		timer_u32[j] = 0;
+	}
 
-	myStr->point_u32[0][circle] = value_i32[0];
-	myStr->point_u32[1][circle] = value_i32[1];
-	myStr->point_u32[2][circle] = value_i32[2];
-	myStr->point_u32[3][circle] = value_i32[3];
-	myStr->point_u32[4][circle] = value_i32[4];
-	myStr->point_u32[5][circle] = value_i32[5];
-	myStr->point_u32[6][circle] = value_i32[6];
-	myStr->point_u32[7][circle] = value_i32[7];
-	myStr->point_u32[8][circle] = adc_value_U ;
-	myStr->point_u32[9][circle] = adc_value_T ;
+	Strobe_Z(STROBE_DURATION);
+	TIM4->CNT = 0;
+	HAL_TIM_Base_Start(&htim4);
+	HAL_Delay(MEASUREMENT_TIME);
+	HAL_TIM_Base_Stop(&htim4);
 
-	sprintf(DataChar,"\t%05d %05d\t%05d %05d\t%05d %05d\t%05d %05d\t%05d %05d",
-						(int)myStr->point_u32[0][circle],
-						(int)myStr->point_u32[1][circle],
-						(int)myStr->point_u32[2][circle],
-						(int)myStr->point_u32[3][circle],
-						(int)myStr->point_u32[4][circle],
-						(int)myStr->point_u32[5][circle],
-						(int)myStr->point_u32[6][circle],
-						(int)myStr->point_u32[7][circle],
-						(int)myStr->point_u32[8][circle],
-						(int)myStr->point_u32[9][circle] );
+	value_i32[ 8] = timer_u32[0] ;
+	value_i32[ 9] = timer_u32[1] ;
+	value_i32[10] = timer_u32[2] ;
+	value_i32[11] = timer_u32[3] ;
+
+	myStr->zerone_u32[ 8] += value_i32[ 8] % 2 ;
+	myStr->zerone_u32[ 9] += value_i32[ 9] % 2 ;
+	myStr->zerone_u32[10] += value_i32[10] % 2 ;
+	myStr->zerone_u32[11] += value_i32[11] % 2 ;
+
+	HAL_Delay(10);
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
+	HAL_Delay( 5);
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
+	HAL_Delay(50);
+		// ZONE Z
+
+	uint32_t adc_value_U1 = ADC1_GetValue( &hadc1, ADC_CHANNEL_5 ) ;
+///	uint32_t adc_value_U2 = ADC1_GetValue( &hadc1, ADC_CHANNEL_6 ) ;	///	the temperature is now right
+	uint32_t adc_value_T0 = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
+
+	myStr->point_u32[ 0][circle] = value_i32[ 0];
+	myStr->point_u32[ 1][circle] = value_i32[ 1];
+	myStr->point_u32[ 2][circle] = value_i32[ 2];
+	myStr->point_u32[ 3][circle] = value_i32[ 3];
+
+	myStr->point_u32[ 4][circle] = value_i32[ 4];
+	myStr->point_u32[ 5][circle] = value_i32[ 5];
+	myStr->point_u32[ 6][circle] = value_i32[ 6];
+	myStr->point_u32[ 7][circle] = value_i32[ 7];
+
+	myStr->point_u32[ 8][circle] = value_i32[ 8];
+	myStr->point_u32[ 9][circle] = value_i32[ 9];
+	myStr->point_u32[10][circle] = value_i32[10];
+	myStr->point_u32[11][circle] = value_i32[11];
+
+
+	myStr->point_u32[12][circle] = adc_value_U1;
+///	myStr->point_u32[13][circle] = adc_value_U2;	///	the temperature is now right
+	myStr->point_u32[14][circle] = adc_value_T0 ;
+
+	sprintf(DataChar," x0:%05d %05d x1:%05d %05d  y0:%05d %05d y1:%05d %05d  z0:%05d %05d z1:%05d %05d U1:%04d U2:%04d T0:%04d",
+						(int)myStr->point_u32[ 0][circle],
+						(int)myStr->point_u32[ 1][circle],
+						(int)myStr->point_u32[ 2][circle],
+						(int)myStr->point_u32[ 3][circle],
+						(int)myStr->point_u32[ 4][circle],
+						(int)myStr->point_u32[ 5][circle],
+						(int)myStr->point_u32[ 6][circle],
+						(int)myStr->point_u32[ 7][circle],
+						(int)myStr->point_u32[ 8][circle],
+						(int)myStr->point_u32[ 9][circle],
+						(int)myStr->point_u32[10][circle],
+						(int)myStr->point_u32[11][circle],
+						(int)myStr->point_u32[12][circle],
+						(int)myStr->point_u32[13][circle],
+						(int)myStr->point_u32[14][circle] );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
-	sprintf(DataChar,"\t %02d %02d %02d %02d %02d %02d %02d %02d \r\n",
-						(int) myStr->zerone_u32[0] ,
-						(int) myStr->zerone_u32[1] ,
-						(int) myStr->zerone_u32[2] ,
-						(int) myStr->zerone_u32[3] ,
-						(int) myStr->zerone_u32[4] ,
-						(int) myStr->zerone_u32[5] ,
-						(int) myStr->zerone_u32[6] ,
-						(int) myStr->zerone_u32[7] ) ;
+	sprintf(DataChar,"\t %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d \r\n",
+						(int) myStr->zerone_u32[ 0] ,
+						(int) myStr->zerone_u32[ 1] ,
+						(int) myStr->zerone_u32[ 2] ,
+						(int) myStr->zerone_u32[ 3] ,
+						(int) myStr->zerone_u32[ 4] ,
+						(int) myStr->zerone_u32[ 5] ,
+						(int) myStr->zerone_u32[ 6] ,
+						(int) myStr->zerone_u32[ 7] ,
+						(int) myStr->zerone_u32[ 8] ,
+						(int) myStr->zerone_u32[ 9] ,
+						(int) myStr->zerone_u32[10] ,
+						(int) myStr->zerone_u32[11] ) ;
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 }
 
@@ -197,26 +252,26 @@ void Timer_Update( uint8_t _timer_u8, uint32_t _tim_value_u32) {
 
 void Strobe_Y(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_Y_GPIO_Port, STROBE_Y_Pin, SET);
-	local_delay(_strobe_duration);
+	local_delay_GRZ(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_Y_GPIO_Port, STROBE_Y_Pin, RESET);
 }
 //***************************************************************************
 
 void Strobe_X(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_X_GPIO_Port, STROBE_X_Pin, SET);
-	local_delay(_strobe_duration);
+	local_delay_GRZ(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_X_GPIO_Port, STROBE_X_Pin, RESET);
 }
 //***************************************************************************
 
 void Strobe_Z(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_Z_GPIO_Port, STROBE_Z_Pin, SET);
-	local_delay(_strobe_duration);
+	local_delay_GRZ(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_Z_GPIO_Port, STROBE_Z_Pin, RESET);
 }
 //***************************************************************************
 
-void local_delay(uint32_t _delay) {
+void local_delay_GRZ(uint32_t _delay) {
 	for (uint32_t t=0; t<_delay; t++) {
 		__asm("nop");
 	}

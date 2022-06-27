@@ -12,10 +12,7 @@
 	#include "ringbuffer_dma_sm.h"
 	#include "average_calc_3_from_5.h"
 	#include "adc_light_stm32f103_hal_sm.h"
-	#include "lcd1602_fc113_sm.h"
-	#include "i2c_techmaker_sm.h"
-	#include "nrf24l01_config.h"
-	#include "nRF24L01_sm.h"
+
 //******************************************************************************************
 
 	typedef struct {
