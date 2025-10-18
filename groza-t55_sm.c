@@ -58,7 +58,7 @@ void Groza_t55_init (void) {
 	sprintf(DataChar,"\t build: %s time: %s\r\n" , DATE_as_int_str , TIME_as_int_str ) ;
 	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , sizeof(DataChar) , 100 ) ;
 
-	sprintf(DataChar,"\t UART1 for debug on speed 115200\r\n");
+	sprintf(DataChar,"\t UART1 for debug on speed 62500\r\n");
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, sizeof(DataChar), 100);
 
 	//	I2Cdev_init(&hi2c1);
