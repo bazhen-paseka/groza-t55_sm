@@ -21,7 +21,7 @@
 
 //******************************************************************************************
 
-	void Groza_t55_init 	( void );
+	void Groza_2017_Init 	( void );
 	void Groza_2017_Main 	( void );
 //	void Groza_t55_test 	( void );
 //	void NRF24L01_Module	( void );

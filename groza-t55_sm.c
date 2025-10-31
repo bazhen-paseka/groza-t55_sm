@@ -58,15 +58,19 @@
 
 //******************************************************************************************
 
-void Groza_t55_init (void) {
+void Groza_2017_Init (void) {
 	DebugSoftVersion(SOFT_VERSION);
 	DBG1("\t UART1 for debug on speed 62500\r\n");
-	DS18b20_Print_serial_number(&huart1);
-	DS18b20_ConvertTemp_SkipROM ();
+
+	DBG1("\t Start.Ds18b20:\r\n");
+	Ds18b20_Init_DWT_Delay();
+	Ds18b20_Print_serial_number();
+	Ds18b20_ConvertTemp_SkipROM();
 	HAL_Delay(1000);
-	int temp_int = DS18b20_Get_Temp_SkipROM ();
+	int temp_int = Ds18b20_Get_Temp_SkipROM ();
 	DBG1( "DS18b20 = %d;\r\n",temp_int);
 
+	DBG1("\t Start.Esp8266:\r\n");
 	HAL_GPIO_WritePin(Esp8266_En_GPIO_Port, Esp8266_En_Pin, SET);	// Esp8266 is Enable
 	HAL_GPIO_WritePin(Esp8266_nRESET_GPIO_Port, Esp8266_nRESET_Pin, SET);	// Esp8266 release RESET
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
@@ -90,6 +94,7 @@ void Groza_t55_init (void) {
 
 	RingBuffer_DMA_Connect();
 	HAL_TIM_Base_Start_IT(&htim3);
+	DBG1("\t End.Init.\r\n");
 } //*****************************************************************************
 
 void Groza_2017_Main (void) {
@@ -129,7 +134,7 @@ void Groza_2017_Main (void) {
 		DBG1("  D\t" ); fflush(stdout);
 		aver_res_u32[device] = Calc_Average(MyStr3.point_i[device], CIRCLE_QNT);
 	}
-	DS18b20_ConvertTemp_SkipROM ();
+	Ds18b20_ConvertTemp_SkipROM();
 
 	char http_req[0xFF] = { 0 } ;
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
@@ -170,7 +175,7 @@ void Groza_2017_Main (void) {
 	RingBuffer_DMA_Main(http_req, apiKey_0);
 	HAL_Delay(500);
 
-	int ds18b20_int = DS18b20_Get_Temp_SkipROM ();
+	int ds18b20_int = Ds18b20_Get_Temp_SkipROM ();
 
 #if ( FIRST8 == 1 )
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
