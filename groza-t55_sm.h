@@ -15,8 +15,8 @@
 //******************************************************************************************
 
 	typedef struct {
-		uint32_t	point_u32[DEVICE_QNT][CIRCLE_QNT];
-		uint32_t	zerone_u32[DEVICE_QNT] ;
+		int		point_i[DEVICE_QNT][CIRCLE_QNT];
+		int		zerone_i[DEVICE_QNT] ;
 	} PointStr;
 
 //******************************************************************************************

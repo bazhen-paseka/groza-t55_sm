@@ -110,50 +110,50 @@ void Groza_2017_Main (void) {
 				}//for(line0)
 				for (uint8_t device = 0; device < DEVICE_QNT; device++) {
 					DBG1("  A%d%d%d\t", (int)line3, (int)line2, (int)line1 ); fflush(stdout);
-					MyStr1.point_u32[device][line1] = Calc_Average(MyStr0.point_u32[device], CIRCLE_QNT);
+					MyStr1.point_i[device][line1] = Calc_Average(MyStr0.point_i[device], CIRCLE_QNT);
 				}
 			}//for(line1)
 			for (uint8_t device = 0; device < DEVICE_QNT; device++) {
 				DBG1("  B%d%d\t", (int)line3, (int)line2 ); fflush(stdout);
-				MyStr2.point_u32[device][line2] = Calc_Average(MyStr1.point_u32[device], CIRCLE_QNT);
+				MyStr2.point_i[device][line2] = Calc_Average(MyStr1.point_i[device], CIRCLE_QNT);
 			}
 		}//for(line2)
 		for (uint8_t device = 0; device < DEVICE_QNT; device++) {
 			DBG1("  C%d\t", (int)line3 ); fflush(stdout);
-			MyStr3.point_u32[device][line3] = Calc_Average(MyStr2.point_u32[device], CIRCLE_QNT);
+			MyStr3.point_i[device][line3] = Calc_Average(MyStr2.point_i[device], CIRCLE_QNT);
 		}
 	}//for(line3)
 
 	uint32_t aver_res_u32[DEVICE_QNT];
 	for (uint8_t device = 0; device < DEVICE_QNT; device++) {
 		DBG1("  D\t" ); fflush(stdout);
-		aver_res_u32[device] = Calc_Average(MyStr3.point_u32[device], CIRCLE_QNT);
+		aver_res_u32[device] = Calc_Average(MyStr3.point_i[device], CIRCLE_QNT);
 	}
 	DS18b20_ConvertTemp_SkipROM ();
 
 	char http_req[0xFF] = { 0 } ;
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
-					(int) MyStr0.zerone_u32[ 0] ,
-					(int) MyStr0.zerone_u32[ 1] ,
-					(int) MyStr0.zerone_u32[ 2] ,
-					(int) MyStr0.zerone_u32[ 3] ,
-					(int) MyStr0.zerone_u32[ 4] ,
-					(int) MyStr0.zerone_u32[ 5] ,
-					(int) MyStr0.zerone_u32[ 6] ,
-					(int) MyStr0.zerone_u32[ 7] ) ;
+					(int) MyStr0.zerone_i[ 0] ,
+					(int) MyStr0.zerone_i[ 1] ,
+					(int) MyStr0.zerone_i[ 2] ,
+					(int) MyStr0.zerone_i[ 3] ,
+					(int) MyStr0.zerone_i[ 4] ,
+					(int) MyStr0.zerone_i[ 5] ,
+					(int) MyStr0.zerone_i[ 6] ,
+					(int) MyStr0.zerone_i[ 7] ) ;
 	char apiKey_2[] = THINGSPEAK_API_KEY_2 ;
 	RingBuffer_DMA_Main(http_req, apiKey_2);
 	HAL_Delay(500);
 
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
-					(int) MyStr0.zerone_u32[ 8] ,
-					(int) MyStr0.zerone_u32[ 9] ,
-					(int) MyStr0.zerone_u32[10] ,
-					(int) MyStr0.zerone_u32[11] ,
-					(int) MyStr0.zerone_u32[12] ,
-					(int) MyStr0.zerone_u32[13] ,
-					(int) MyStr0.zerone_u32[14] ,
-					(int) MyStr0.zerone_u32[15] ) ;
+					(int) MyStr0.zerone_i[ 8] ,
+					(int) MyStr0.zerone_i[ 9] ,
+					(int) MyStr0.zerone_i[10] ,
+					(int) MyStr0.zerone_i[11] ,
+					(int) MyStr0.zerone_i[12] ,
+					(int) MyStr0.zerone_i[13] ,
+					(int) MyStr0.zerone_i[14] ,
+					(int) MyStr0.zerone_i[15] ) ;
 	char apiKey_3[] = THINGSPEAK_API_KEY_3 ;
 	RingBuffer_DMA_Main(http_req, apiKey_3);
 
@@ -202,7 +202,7 @@ void Groza_2017_Main (void) {
 #endif
 
 	for (int d=0; d < DEVICE_QNT; d++) {
-		MyStr0.zerone_u32[d] = 0;
+		MyStr0.zerone_i[d] = 0;
 	}
 } //*****************************************************************************
 
@@ -227,10 +227,10 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	value_i32[2] = timer_u32[2] ;
 	value_i32[3] = timer_u32[3] ;
 
-	myStr->zerone_u32[0] += value_i32[0] % 2 ;
-	myStr->zerone_u32[1] += value_i32[1] % 2 ;
-	myStr->zerone_u32[2] += value_i32[2] % 2 ;
-	myStr->zerone_u32[3] += value_i32[3] % 2 ;
+	myStr->zerone_i[0] += value_i32[0] % 2 ;
+	myStr->zerone_i[1] += value_i32[1] % 2 ;
+	myStr->zerone_i[2] += value_i32[2] % 2 ;
+	myStr->zerone_i[3] += value_i32[3] % 2 ;
 
 	HAL_Delay(10);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
@@ -255,10 +255,10 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	value_i32[6] = timer_u32[2] ;
 	value_i32[7] = timer_u32[3] ;
 
-	myStr->zerone_u32[4] += value_i32[4] % 2 ;
-	myStr->zerone_u32[5] += value_i32[5] % 2 ;
-	myStr->zerone_u32[6] += value_i32[6] % 2 ;
-	myStr->zerone_u32[7] += value_i32[7] % 2 ;
+	myStr->zerone_i[4] += value_i32[4] % 2 ;
+	myStr->zerone_i[5] += value_i32[5] % 2 ;
+	myStr->zerone_i[6] += value_i32[6] % 2 ;
+	myStr->zerone_i[7] += value_i32[7] % 2 ;
 
 	HAL_Delay(10);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
@@ -283,10 +283,10 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	value_i32[10] = timer_u32[2] ;
 	value_i32[11] = timer_u32[3] ;
 
-	myStr->zerone_u32[ 8] += value_i32[ 8] % 2 ;
-	myStr->zerone_u32[ 9] += value_i32[ 9] % 2 ;
-	myStr->zerone_u32[10] += value_i32[10] % 2 ;
-	myStr->zerone_u32[11] += value_i32[11] % 2 ;
+	myStr->zerone_i[ 8] += value_i32[ 8] % 2 ;
+	myStr->zerone_i[ 9] += value_i32[ 9] % 2 ;
+	myStr->zerone_i[10] += value_i32[10] % 2 ;
+	myStr->zerone_i[11] += value_i32[11] % 2 ;
 
 	HAL_Delay(10);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, RESET) ;
@@ -299,60 +299,57 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 ///	uint32_t adc_value_U2 = ADC1_GetValue( &hadc1, ADC_CHANNEL_6 ) ;	///	the temperature is now right
 	uint32_t adc_value_T0 = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
 
-	myStr->point_u32[ 0][circle] = value_i32[ 0];
-	myStr->point_u32[ 1][circle] = value_i32[ 1];
-	myStr->point_u32[ 2][circle] = value_i32[ 2];
-	myStr->point_u32[ 3][circle] = value_i32[ 3];
+	myStr->point_i[ 0][circle] = value_i32[ 0];
+	myStr->point_i[ 1][circle] = value_i32[ 1];
+	myStr->point_i[ 2][circle] = value_i32[ 2];
+	myStr->point_i[ 3][circle] = value_i32[ 3];
 
-	myStr->point_u32[ 4][circle] = value_i32[ 4];
-	myStr->point_u32[ 5][circle] = value_i32[ 5];
-	myStr->point_u32[ 6][circle] = value_i32[ 6];
-	myStr->point_u32[ 7][circle] = value_i32[ 7];
+	myStr->point_i[ 4][circle] = value_i32[ 4];
+	myStr->point_i[ 5][circle] = value_i32[ 5];
+	myStr->point_i[ 6][circle] = value_i32[ 6];
+	myStr->point_i[ 7][circle] = value_i32[ 7];
 
-	myStr->point_u32[ 8][circle] = value_i32[ 8];
-	myStr->point_u32[ 9][circle] = value_i32[ 9];
-	myStr->point_u32[10][circle] = value_i32[10];
-	myStr->point_u32[11][circle] = value_i32[11];
+	myStr->point_i[ 8][circle] = value_i32[ 8];
+	myStr->point_i[ 9][circle] = value_i32[ 9];
+	myStr->point_i[10][circle] = value_i32[10];
+	myStr->point_i[11][circle] = value_i32[11];
 
 
-	myStr->point_u32[12][circle] = adc_value_U1;
-///	myStr->point_u32[13][circle] = adc_value_U2;	///	the temperature is now right
-	myStr->point_u32[14][circle] = adc_value_T0 ;
+	myStr->point_i[12][circle] = adc_value_U1;
+///	myStr->point_i[13][circle] = adc_value_U2;	///	the temperature is now right
+	myStr->point_i[14][circle] = adc_value_T0 ;
 
 	DBG1(" x0:%05d %05d x1:%05d %05d  y0:%05d %05d y1:%05d %05d  z0:%05d %05d z1:%05d %05d U1:%04d U2:%04d T0:%04d",
-						(int)myStr->point_u32[ 0][circle],
-						(int)myStr->point_u32[ 1][circle],
-						(int)myStr->point_u32[ 2][circle],
-						(int)myStr->point_u32[ 3][circle],
-						(int)myStr->point_u32[ 4][circle],
-						(int)myStr->point_u32[ 5][circle],
-						(int)myStr->point_u32[ 6][circle],
-						(int)myStr->point_u32[ 7][circle],
-						(int)myStr->point_u32[ 8][circle],
-						(int)myStr->point_u32[ 9][circle],
-						(int)myStr->point_u32[10][circle],
-						(int)myStr->point_u32[11][circle],
-						(int)myStr->point_u32[12][circle],
-						(int)myStr->point_u32[13][circle],
-						(int)myStr->point_u32[14][circle] ); fflush(stdout);
+						(int)myStr->point_i[ 0][circle],
+						(int)myStr->point_i[ 1][circle],
+						(int)myStr->point_i[ 2][circle],
+						(int)myStr->point_i[ 3][circle],
+						(int)myStr->point_i[ 4][circle],
+						(int)myStr->point_i[ 5][circle],
+						(int)myStr->point_i[ 6][circle],
+						(int)myStr->point_i[ 7][circle],
+						(int)myStr->point_i[ 8][circle],
+						(int)myStr->point_i[ 9][circle],
+						(int)myStr->point_i[10][circle],
+						(int)myStr->point_i[11][circle],
+						(int)myStr->point_i[12][circle],
+						(int)myStr->point_i[13][circle],
+						(int)myStr->point_i[14][circle] ); fflush(stdout);
 
 	DBG1("\t %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d \r\n",
-						(int) myStr->zerone_u32[ 0] ,
-						(int) myStr->zerone_u32[ 1] ,
-						(int) myStr->zerone_u32[ 2] ,
-						(int) myStr->zerone_u32[ 3] ,
-						(int) myStr->zerone_u32[ 4] ,
-						(int) myStr->zerone_u32[ 5] ,
-						(int) myStr->zerone_u32[ 6] ,
-						(int) myStr->zerone_u32[ 7] ,
-						(int) myStr->zerone_u32[ 8] ,
-						(int) myStr->zerone_u32[ 9] ,
-						(int) myStr->zerone_u32[10] ,
-						(int) myStr->zerone_u32[11] ) ; fflush(stdout);
-}
-
-
-//*****************************************************************************
+						(int) myStr->zerone_i[ 0] ,
+						(int) myStr->zerone_i[ 1] ,
+						(int) myStr->zerone_i[ 2] ,
+						(int) myStr->zerone_i[ 3] ,
+						(int) myStr->zerone_i[ 4] ,
+						(int) myStr->zerone_i[ 5] ,
+						(int) myStr->zerone_i[ 6] ,
+						(int) myStr->zerone_i[ 7] ,
+						(int) myStr->zerone_i[ 8] ,
+						(int) myStr->zerone_i[ 9] ,
+						(int) myStr->zerone_i[10] ,
+						(int) myStr->zerone_i[11] ) ; fflush(stdout);
+} //*****************************************************************************
 
 //*****************************************************************************
 
@@ -362,46 +359,39 @@ void Set_Flag_1_Sec(uint8_t _flag)	{
 	} else {
 		flag_1_sec_u8 = 1;
 	}
-}
-//*****************************************************************************
+} //*****************************************************************************
 
 uint8_t Get_Flag_1_Sec(void) {
 	return flag_1_sec_u8;
-}
-//*****************************************************************************
+} //*****************************************************************************
 
 void Timer_Update( uint8_t _timer_u8, uint32_t _tim_value_u32) {
 	timer_u32[_timer_u8] = _tim_value_u32;
-}
-//*****************************************************************************
+} //*****************************************************************************
 
 void Strobe_Y(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_Y_GPIO_Port, STROBE_Y_Pin, SET);
 	local_delay_GRZ(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_Y_GPIO_Port, STROBE_Y_Pin, RESET);
-}
-//***************************************************************************
+} //***************************************************************************
 
 void Strobe_X(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_X_GPIO_Port, STROBE_X_Pin, SET);
 	local_delay_GRZ(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_X_GPIO_Port, STROBE_X_Pin, RESET);
-}
-//***************************************************************************
+} //***************************************************************************
 
 void Strobe_Z(uint32_t _strobe_duration) {
 	HAL_GPIO_WritePin(STROBE_Z_GPIO_Port, STROBE_Z_Pin, SET);
 	local_delay_GRZ(_strobe_duration);
 	HAL_GPIO_WritePin(STROBE_Z_GPIO_Port, STROBE_Z_Pin, RESET);
-}
-//***************************************************************************
+} //***************************************************************************
 
 void local_delay_GRZ(uint32_t _delay) {
 	for (uint32_t t=0; t<_delay; t++) {
 		__asm("nop");
 	}
-}
-//***************************************************************************
+} //***************************************************************************
 
 //***************************************************************************
 //void NRF24L01_Module(void) {
@@ -529,5 +519,4 @@ void local_delay_GRZ(uint32_t _delay) {
 //						(int)value_i32[7],
 //						(int)adc_value_U,
 //						(int)adc_value_T ); fflush(stdout);
-//}
-//*****************************************************************************
+//} //*****************************************************************************
