@@ -4,8 +4,11 @@
 
 //******************************************************************************************
 
-	extern UART_HandleTypeDef huart1;
-	extern TIM_HandleTypeDef htim4;
+	extern 	UART_HandleTypeDef 	huart1;
+	extern 	UART_HandleTypeDef 	huart3;
+	extern 	TIM_HandleTypeDef 	htim3;
+	extern 	TIM_HandleTypeDef 	htim4;
+
 //******************************************************************************************
 
 	#define TIM_QNT		4
@@ -17,6 +20,17 @@
 	//  uint32_t channel_1_value_u32[4];
 	//  uint32_t channel_2_value_u32[4];
 	uint8_t flag_1_sec_u8 = 0;
+
+	PointStr MyStr0 = {0};
+	PointStr MyStr1 = {0};
+	PointStr MyStr2 = {0};
+	PointStr MyStr3 = {0};
+
+//	PointStr MyStr0 = {0};
+//	PointStr MyStr1 = {0};
+//	PointStr MyStr2 = {0};
+//	PointStr MyStr3 = {0};
+//	char DataChar[0xFF] = {0};
 
 //	lcd1602_fc113_struct h1_lcd1602_fc113 =
 //	{
@@ -37,52 +51,165 @@
 
 //******************************************************************************************
 
-  void Strobe_X(uint32_t _strobe_duration);
-  void Strobe_Y(uint32_t _strobe_duration);
-  void Strobe_Z(uint32_t _strobe_duration);
-  void local_delay_GRZ(uint32_t _delay);
+  void 		Strobe_X			(uint32_t _strobe_duration);
+  void 		Strobe_Y			(uint32_t _strobe_duration);
+  void 		Strobe_Z			(uint32_t _strobe_duration);
+  void 		local_delay_GRZ		(uint32_t _delay);
+
 //******************************************************************************************
 
 void Groza_t55_init (void) {
-	int soft_version_arr_int[3];
-	soft_version_arr_int[0] = ((SOFT_VERSION) / 100)     ;
-	soft_version_arr_int[1] = ((SOFT_VERSION) /  10) %10 ;
-	soft_version_arr_int[2] = ((SOFT_VERSION)      ) %10 ;
+	DebugSoftVersion(SOFT_VERSION);
+	DBG1("\t UART1 for debug on speed 62500\r\n");
+	DS18b20_Print_serial_number(&huart1);
+	DS18b20_ConvertTemp_SkipROM ();
+	HAL_Delay(1000);
+	int temp_int = DS18b20_Get_Temp_SkipROM ();
+	DBG1( "DS18b20 = %d;\r\n",temp_int);
 
-	sprintf(DataChar,"\r\n\t 19ZH36 GROZA-T55 v%d.%d.%d\r\n",
-			soft_version_arr_int[0], soft_version_arr_int[1], soft_version_arr_int[2]);
-	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, sizeof(DataChar), 100);
+	HAL_GPIO_WritePin(Esp8266_En_GPIO_Port, Esp8266_En_Pin, SET);	// Esp8266 is Enable
+	HAL_GPIO_WritePin(Esp8266_nRESET_GPIO_Port, Esp8266_nRESET_Pin, SET);	// Esp8266 release RESET
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
+	HAL_GPIO_WritePin(BUTTON_GND_GPIO_Port, BUTTON_GND_Pin, RESET );
+	while (HAL_GPIO_ReadPin(BUTTON_INPUT_GPIO_Port, BUTTON_INPUT_Pin ) == GPIO_PIN_RESET ) {
+		Measurement( &MyStr0, 0 );
+	}
 
-	#define DATE_as_int_str 	(__DATE__)
-	#define TIME_as_int_str 	(__TIME__)
-	sprintf(DataChar,"\t build: %s time: %s\r\n" , DATE_as_int_str , TIME_as_int_str ) ;
-	HAL_UART_Transmit( &huart1, (uint8_t *)DataChar , sizeof(DataChar) , 100 ) ;
+	#if ( FIRST8 == 1 )
+		for (int i=0; i<6; i++) {	// wait for router ready
+			Measurement( &MyStr0, 0 );
+			HAL_Delay(300);
+		}
 
-	sprintf(DataChar,"\t UART1 for debug on speed 62500\r\n");
-	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, sizeof(DataChar), 100);
+	#elif ( NEXT12	== 1)
+		for (int i=0; i<70; i++) {	// wait for router ready
+			Measurement( &MyStr0, 0 );
+			HAL_Delay(300);
+		}
+	#endif
 
-	//	I2Cdev_init(&hi2c1);
-	//	I2C_ScanBusFlow(&hi2c1, &huart1);
-	//
-	//	LCD1602_Init(&h1_lcd1602_fc113);
-	//	I2C_ScanBus_to_LCD1602(&h1_lcd1602_fc113);
-	//
-	//	LCD1602_Clear(&h1_lcd1602_fc113);
-	//	LCD1602_Cursor_Return(&h1_lcd1602_fc113);
-	//	sprintf(DataChar,"19zh6 Groza-T55");
-	//	LCD1602_Print_Line(&h1_lcd1602_fc113, DataChar, strlen(DataChar));
+	RingBuffer_DMA_Connect();
+	HAL_TIM_Base_Start_IT(&htim3);
+} //*****************************************************************************
 
-	//	NRF24L01_Init(&hspi2, MY_CHANNEL, 32);
-	//	NRF24L01_SetRF(NRF24L01_DataRate_250k, NRF24L01_OutputPower_M6dBm);	/* Set 250kBps data rate and -6dBm output power */
-	//	NRF24L01_SetMyAddress(MyAddress);	/* Set my address, 5 bytes */
-	//	LCD1602_Clear(&h1_lcd1602_fc113);
-}
-//*****************************************************************************
+void Groza_2017_Main (void) {
+	//	NRF24L01_Module();
+	while (HAL_GPIO_ReadPin(BUTTON_INPUT_GPIO_Port, BUTTON_INPUT_Pin ) == GPIO_PIN_RESET ) {
+		if (Get_Flag_1_Sec() == 1) {
+			Measurement( &MyStr0, 0);
+			Set_Flag_1_Sec(0);
+		}
+	}
+	for (				uint8_t line3=0; line3 < CIRCLE_QNT; line3++ )	{
+		for (			uint8_t line2=0; line2 < CIRCLE_QNT; line2++ )	{
+			for (		uint8_t line1=0; line1 < CIRCLE_QNT; line1++ )	{
+				for (	uint8_t line0=0; line0 < CIRCLE_QNT; line0++ )	{
+					while (Get_Flag_1_Sec() == 0) {	/* wait on flag 1 Sec */ }
+					Set_Flag_1_Sec(0);
+					Measurement( &MyStr0, line0);
+				}//for(line0)
+				for (uint8_t device = 0; device < DEVICE_QNT; device++) {
+					DBG1("  A%d%d%d\t", (int)line3, (int)line2, (int)line1 ); fflush(stdout);
+					MyStr1.point_u32[device][line1] = Calc_Average(MyStr0.point_u32[device], CIRCLE_QNT);
+				}
+			}//for(line1)
+			for (uint8_t device = 0; device < DEVICE_QNT; device++) {
+				DBG1("  B%d%d\t", (int)line3, (int)line2 ); fflush(stdout);
+				MyStr2.point_u32[device][line2] = Calc_Average(MyStr1.point_u32[device], CIRCLE_QNT);
+			}
+		}//for(line2)
+		for (uint8_t device = 0; device < DEVICE_QNT; device++) {
+			DBG1("  C%d\t", (int)line3 ); fflush(stdout);
+			MyStr3.point_u32[device][line3] = Calc_Average(MyStr2.point_u32[device], CIRCLE_QNT);
+		}
+	}//for(line3)
+
+	uint32_t aver_res_u32[DEVICE_QNT];
+	for (uint8_t device = 0; device < DEVICE_QNT; device++) {
+		DBG1("  D\t" ); fflush(stdout);
+		aver_res_u32[device] = Calc_Average(MyStr3.point_u32[device], CIRCLE_QNT);
+	}
+	DS18b20_ConvertTemp_SkipROM ();
+
+	char http_req[0xFF] = { 0 } ;
+	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
+					(int) MyStr0.zerone_u32[ 0] ,
+					(int) MyStr0.zerone_u32[ 1] ,
+					(int) MyStr0.zerone_u32[ 2] ,
+					(int) MyStr0.zerone_u32[ 3] ,
+					(int) MyStr0.zerone_u32[ 4] ,
+					(int) MyStr0.zerone_u32[ 5] ,
+					(int) MyStr0.zerone_u32[ 6] ,
+					(int) MyStr0.zerone_u32[ 7] ) ;
+	char apiKey_2[] = THINGSPEAK_API_KEY_2 ;
+	RingBuffer_DMA_Main(http_req, apiKey_2);
+	HAL_Delay(500);
+
+	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
+					(int) MyStr0.zerone_u32[ 8] ,
+					(int) MyStr0.zerone_u32[ 9] ,
+					(int) MyStr0.zerone_u32[10] ,
+					(int) MyStr0.zerone_u32[11] ,
+					(int) MyStr0.zerone_u32[12] ,
+					(int) MyStr0.zerone_u32[13] ,
+					(int) MyStr0.zerone_u32[14] ,
+					(int) MyStr0.zerone_u32[15] ) ;
+	char apiKey_3[] = THINGSPEAK_API_KEY_3 ;
+	RingBuffer_DMA_Main(http_req, apiKey_3);
+
+	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
+					(int) aver_res_u32[ 0] ,
+					(int) aver_res_u32[ 1] ,
+					(int) aver_res_u32[ 2] ,
+					(int) aver_res_u32[ 3] ,
+					(int) aver_res_u32[ 4] ,
+					(int) aver_res_u32[ 5] ,
+					(int) aver_res_u32[ 6] ,
+					(int) aver_res_u32[ 7] );
+	char apiKey_0[] = THINGSPEAK_API_KEY_0 ;
+	RingBuffer_DMA_Main(http_req, apiKey_0);
+	HAL_Delay(500);
+
+	int ds18b20_int = DS18b20_Get_Temp_SkipROM ();
+
+#if ( FIRST8 == 1 )
+	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
+					(int)((aver_res_u32[12]*4)/10),
+					(int)aver_res_u32[14],
+					(int)aver_res_u32[ 8],
+					(int)aver_res_u32[ 9],
+					(int)aver_res_u32[10],
+					(int)aver_res_u32[11],
+					(int)aver_res_u32[12],
+					(int) ds18b20_int      );
+	char apiKey_1[] = THINGSPEAK_API_KEY_1 ;
+	RingBuffer_DMA_Main(http_req, apiKey_1);
+	HAL_Delay(500);
+
+#elif ( NEXT12	== 1)
+	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
+					(int) aver_res_u32[ 8] ,
+					(int) aver_res_u32[ 9] ,
+					(int) aver_res_u32[10] ,
+					(int) aver_res_u32[11] ,
+					(int) aver_res_u32[12] ,
+					(int) aver_res_u32[13] ,
+					(int) aver_res_u32[14] ,
+					(int) ds18b20_int       );
+	char apiKey_1[] = THINGSPEAK_API_KEY_1 ;
+	RingBuffer_DMA_Main(http_req, apiKey_1);
+	HAL_Delay(500);
+#endif
+
+	for (int d=0; d < DEVICE_QNT; d++) {
+		MyStr0.zerone_u32[d] = 0;
+	}
+} //*****************************************************************************
 
 void Measurement (PointStr *myStr, uint8_t circle) {
 	uint32_t 	value_i32[DEVICE_QNT];
-	sprintf(DataChar,"%d)", (int)circle);
-	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+	DBG1("%d)", (int)circle); fflush(stdout);
+
 
 		// ZONE X
 	for (int j=0; j<TIM_QNT; j++) {
@@ -192,7 +319,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 ///	myStr->point_u32[13][circle] = adc_value_U2;	///	the temperature is now right
 	myStr->point_u32[14][circle] = adc_value_T0 ;
 
-	sprintf(DataChar," x0:%05d %05d x1:%05d %05d  y0:%05d %05d y1:%05d %05d  z0:%05d %05d z1:%05d %05d U1:%04d U2:%04d T0:%04d",
+	DBG1(" x0:%05d %05d x1:%05d %05d  y0:%05d %05d y1:%05d %05d  z0:%05d %05d z1:%05d %05d U1:%04d U2:%04d T0:%04d",
 						(int)myStr->point_u32[ 0][circle],
 						(int)myStr->point_u32[ 1][circle],
 						(int)myStr->point_u32[ 2][circle],
@@ -207,10 +334,9 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 						(int)myStr->point_u32[11][circle],
 						(int)myStr->point_u32[12][circle],
 						(int)myStr->point_u32[13][circle],
-						(int)myStr->point_u32[14][circle] );
-	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+						(int)myStr->point_u32[14][circle] ); fflush(stdout);
 
-	sprintf(DataChar,"\t %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d \r\n",
+	DBG1("\t %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d \r\n",
 						(int) myStr->zerone_u32[ 0] ,
 						(int) myStr->zerone_u32[ 1] ,
 						(int) myStr->zerone_u32[ 2] ,
@@ -222,8 +348,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 						(int) myStr->zerone_u32[ 8] ,
 						(int) myStr->zerone_u32[ 9] ,
 						(int) myStr->zerone_u32[10] ,
-						(int) myStr->zerone_u32[11] ) ;
-	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+						(int) myStr->zerone_u32[11] ) ; fflush(stdout);
 }
 
 
@@ -283,8 +408,7 @@ void local_delay_GRZ(uint32_t _delay) {
 //	if (NRF24L01_DataReady()) {	/* If data is ready on NRF24L01+ */
 //		NRF24L01_GetData(dataIn);	/* Get data from NRF24L01+ */
 //		HAL_Delay(1);
-//		sprintf(DataChar,"%s", dataIn);
-//		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+//		DBG1("%s", dataIn); fflush(stdout);
 //		LCD1602_Cursor_Return(&h1_lcd1602_fc113);
 //		LCD1602_Print_Line(&h1_lcd1602_fc113, DataChar, strlen(DataChar));
 //
@@ -298,27 +422,25 @@ void local_delay_GRZ(uint32_t _delay) {
 //		/* Send done */
 //
 //		if (transmissionStatus == NRF24L01_Transmit_Status_Ok) {	/* Check data & transmit status */
-//			sprintf(DataChar,"; Send back: OK\r\n");				/* Transmit went OK */
+//			DBG1("; Send back: OK\r\n");				/* Transmit went OK */
 //		} else {
-//			sprintf(DataChar,"; Send back: ERROR\r\n");			/* Message was LOST */
+//			DBG1("; Send back: ERROR\r\n");			/* Message was LOST */
 //		}
-//		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 //
 //		NRF24L01_PowerUpRx();	/* Go back to RX mode */
 //		waitTime = 0;
 //	} else {
 //		if (HAL_GetTick() - lastTime > 250) {
 //			if (waitTime == 0) {
-//				sprintf(DataChar,"Waiting for data");
+//				DBG1("Waiting for data"); fflush(stdout);
 //				waitTime++;
 //			} else if (waitTime > 17) {
-//				sprintf(DataChar,"\r\n");
+//				DBG1("\r\n");
 //				waitTime = 0;
 //			} else {
-//				sprintf(DataChar,".");
+//				DBG1("."); fflush(stdout);
 //				waitTime++;
 //			}
-//			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 //			lastTime = HAL_GetTick();
 //		}
 //	}
@@ -396,7 +518,7 @@ void local_delay_GRZ(uint32_t _delay) {
 //	uint32_t adc_value_U = 		(	ADC1_GetValue( &hadc1, ADC_CHANNEL_5		 ) * 4 ) / 10 ;
 //	uint32_t adc_value_T = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
 //
-//	sprintf(DataChar,"%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%04d\t%04d\r\n",
+//	DBG1("%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%05d\t%04d\t%04d\r\n",
 //						(int)value_i32[0],
 //						(int)value_i32[1],
 //						(int)value_i32[2],
@@ -406,7 +528,6 @@ void local_delay_GRZ(uint32_t _delay) {
 //						(int)value_i32[6],
 //						(int)value_i32[7],
 //						(int)adc_value_U,
-//						(int)adc_value_T );
-//	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+//						(int)adc_value_T ); fflush(stdout);
 //}
 //*****************************************************************************
