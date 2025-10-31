@@ -92,8 +92,7 @@ void Groza_2017_Init (void) {
 		}
 	#endif
 
-	RingBuffer_DMA_Connect();
-	HAL_TIM_Base_Start_IT(&htim3);
+	HAL_TIM_Base_Start_IT(&GROZA_TIM3);
 	DBG1("\t End.Init.\r\n");
 } //*****************************************************************************
 
@@ -147,7 +146,7 @@ void Groza_2017_Main (void) {
 					(int) MyStr0.zerone_i[ 6] ,
 					(int) MyStr0.zerone_i[ 7] ) ;
 	char apiKey_2[] = THINGSPEAK_API_KEY_2 ;
-	RingBuffer_DMA_Main(http_req, apiKey_2);
+//RingBuffer_DMA_Main(http_req, apiKey_2);
 	HAL_Delay(500);
 
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
@@ -160,7 +159,7 @@ void Groza_2017_Main (void) {
 					(int) MyStr0.zerone_i[14] ,
 					(int) MyStr0.zerone_i[15] ) ;
 	char apiKey_3[] = THINGSPEAK_API_KEY_3 ;
-	RingBuffer_DMA_Main(http_req, apiKey_3);
+//RingBuffer_DMA_Main(http_req, apiKey_3);
 
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
 					(int) aver_res_u32[ 0] ,
@@ -172,7 +171,7 @@ void Groza_2017_Main (void) {
 					(int) aver_res_u32[ 6] ,
 					(int) aver_res_u32[ 7] );
 	char apiKey_0[] = THINGSPEAK_API_KEY_0 ;
-	RingBuffer_DMA_Main(http_req, apiKey_0);
+//RingBuffer_DMA_Main(http_req, apiKey_0);
 	HAL_Delay(500);
 
 	int ds18b20_int = Ds18b20_Get_Temp_SkipROM ();
@@ -188,7 +187,7 @@ void Groza_2017_Main (void) {
 					(int)aver_res_u32[12],
 					(int) ds18b20_int      );
 	char apiKey_1[] = THINGSPEAK_API_KEY_1 ;
-	RingBuffer_DMA_Main(http_req, apiKey_1);
+//RingBuffer_DMA_Main(http_req, apiKey_1);
 	HAL_Delay(500);
 
 #elif ( NEXT12	== 1)
@@ -202,7 +201,7 @@ void Groza_2017_Main (void) {
 					(int) aver_res_u32[14] ,
 					(int) ds18b20_int       );
 	char apiKey_1[] = THINGSPEAK_API_KEY_1 ;
-	RingBuffer_DMA_Main(http_req, apiKey_1);
+//RingBuffer_DMA_Main(http_req, apiKey_1);
 	HAL_Delay(500);
 #endif
 

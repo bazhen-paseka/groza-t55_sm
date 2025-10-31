@@ -6,12 +6,12 @@
 	#include <string.h>
 	#include "main.h"
 	#include "usart.h"
-	#include "ringbuffer_dma_sm.h"
 	#include "average_calc_3_from_5.h"
 	#include "adc_light_stm32f103_hal_sm.h"
 	#include "ds18b20_sm.h"
 	#include "debug_gx.h"
 	#include "local_key.h"
+	#include "ringbuffer-gx.h"
 //******************************************************************************************
 
 	typedef struct {
