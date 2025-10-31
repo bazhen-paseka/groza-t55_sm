@@ -15,7 +15,7 @@
 
 //******************************************************************************************
 
-	char DataChar[0xFF];
+	//char DataChar[0xFF];
 	uint32_t timer_u32[ TIM_QNT ];
 	//  uint32_t channel_1_value_u32[4];
 	//  uint32_t channel_2_value_u32[4];
@@ -26,17 +26,7 @@
 	PointStr MyStr2 = {0};
 	PointStr MyStr3 = {0};
 
-//	PointStr MyStr0 = {0};
-//	PointStr MyStr1 = {0};
-//	PointStr MyStr2 = {0};
-//	PointStr MyStr3 = {0};
-//	char DataChar[0xFF] = {0};
-
-//	lcd1602_fc113_struct h1_lcd1602_fc113 =
-//	{
-//		.i2c = &hi2c1,
-//		.device_i2c_address = ADR_I2C_FC113
-//	};
+	HAL_StatusTypeDef send_status = HAL_ERROR;
 
 //	uint8_t  dataIn[32];
 //	NRF24L01_Transmit_Status_t transmissionStatus;	/* NRF transmission status */
@@ -70,30 +60,35 @@ void Groza_2017_Init (void) {
 	int temp_int = Ds18b20_Get_Temp_SkipROM ();
 	DBG1( "DS18b20 = %d;\r\n",temp_int);
 
-	DBG1("\t Start.Esp8266:\r\n");
-	HAL_GPIO_WritePin(Esp8266_En_GPIO_Port, Esp8266_En_Pin, SET);	// Esp8266 is Enable
-	HAL_GPIO_WritePin(Esp8266_nRESET_GPIO_Port, Esp8266_nRESET_Pin, SET);	// Esp8266 release RESET
+	Esp8266_Init();
+	Esp8266_WakeUp();
+	Esp8266_Reset();
+	//Esp8266_Connect_to_WIFI( ATTEMPT_TO_WIFI );
+
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
 	HAL_GPIO_WritePin(BUTTON_GND_GPIO_Port, BUTTON_GND_Pin, RESET );
+
+	//DBG1( "Measurement.&MyStr0\r\n");
 	while (HAL_GPIO_ReadPin(BUTTON_INPUT_GPIO_Port, BUTTON_INPUT_Pin ) == GPIO_PIN_RESET ) {
 		Measurement( &MyStr0, 0 );
 	}
 
+	DBG1( "Measurement.wait.for.router.ready\r\n");
 	#if ( FIRST8 == 1 )
-		for (int i=0; i<6; i++) {	// wait for router ready
-			Measurement( &MyStr0, 0 );
+		for (int i=6; i>=0; i--) {	// wait for router ready
+			Measurement( &MyStr0, i );
 			HAL_Delay(300);
 		}
 
 	#elif ( NEXT12	== 1)
 		for (int i=0; i<70; i++) {	// wait for router ready
-			Measurement( &MyStr0, 0 );
+			Measurement( &MyStr0, i );
 			HAL_Delay(300);
 		}
 	#endif
 
 	HAL_TIM_Base_Start_IT(&GROZA_TIM3);
-	DBG1("\t End.Init.\r\n");
+	DBG1("End.Init.\r\n\r\n");
 } //*****************************************************************************
 
 void Groza_2017_Main (void) {
@@ -135,6 +130,8 @@ void Groza_2017_Main (void) {
 	}
 	Ds18b20_ConvertTemp_SkipROM();
 
+	Esp8266_Connect_to_WIFI( ATTEMPT_TO_WIFI );
+
 	char http_req[0xFF] = { 0 } ;
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
 					(int) MyStr0.zerone_i[ 0] ,
@@ -146,7 +143,7 @@ void Groza_2017_Main (void) {
 					(int) MyStr0.zerone_i[ 6] ,
 					(int) MyStr0.zerone_i[ 7] ) ;
 	char apiKey_2[] = THINGSPEAK_API_KEY_2 ;
-//RingBuffer_DMA_Main(http_req, apiKey_2);
+	Esp8266_Send_to_Inet(http_req, apiKey_2, ATTEMPT_TO_INET );
 	HAL_Delay(500);
 
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
@@ -159,7 +156,7 @@ void Groza_2017_Main (void) {
 					(int) MyStr0.zerone_i[14] ,
 					(int) MyStr0.zerone_i[15] ) ;
 	char apiKey_3[] = THINGSPEAK_API_KEY_3 ;
-//RingBuffer_DMA_Main(http_req, apiKey_3);
+	Esp8266_Send_to_Inet(http_req, apiKey_3, ATTEMPT_TO_INET );
 
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
 					(int) aver_res_u32[ 0] ,
@@ -171,7 +168,7 @@ void Groza_2017_Main (void) {
 					(int) aver_res_u32[ 6] ,
 					(int) aver_res_u32[ 7] );
 	char apiKey_0[] = THINGSPEAK_API_KEY_0 ;
-//RingBuffer_DMA_Main(http_req, apiKey_0);
+	Esp8266_Send_to_Inet(http_req, apiKey_0, ATTEMPT_TO_INET );
 	HAL_Delay(500);
 
 	int ds18b20_int = Ds18b20_Get_Temp_SkipROM ();
@@ -187,7 +184,7 @@ void Groza_2017_Main (void) {
 					(int)aver_res_u32[12],
 					(int) ds18b20_int      );
 	char apiKey_1[] = THINGSPEAK_API_KEY_1 ;
-//RingBuffer_DMA_Main(http_req, apiKey_1);
+	Esp8266_Send_to_Inet(http_req, apiKey_1, ATTEMPT_TO_INET );
 	HAL_Delay(500);
 
 #elif ( NEXT12	== 1)
@@ -201,7 +198,7 @@ void Groza_2017_Main (void) {
 					(int) aver_res_u32[14] ,
 					(int) ds18b20_int       );
 	char apiKey_1[] = THINGSPEAK_API_KEY_1 ;
-//RingBuffer_DMA_Main(http_req, apiKey_1);
+	Esp8266_Send_to_Inet(http_req, apiKey_1, ATTEMPT_TO_INET );
 	HAL_Delay(500);
 #endif
 
@@ -299,9 +296,13 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	HAL_Delay(50);
 		// ZONE Z
 
-	uint32_t adc_value_U1 = ADC1_GetValue( &hadc1, ADC_CHANNEL_5 ) ;
-///	uint32_t adc_value_U2 = ADC1_GetValue( &hadc1, ADC_CHANNEL_6 ) ;	///	the temperature is now right
-	uint32_t adc_value_T0 = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
+	//	uint32_t adc_value_U1 = ADC1_GetValue( &hadc1, ADC_CHANNEL_5 ) ;
+	uint32_t adc_value_U1 = 3000;
+	//DBG1("adc_value_U1: %lu\r\n", adc_value_U1);
+	///	uint32_t adc_value_U2 = ADC1_GetValue( &hadc1, ADC_CHANNEL_6 ) ;	///	the temperature is now right
+	//uint32_t adc_value_T0 = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
+	uint32_t adc_value_T0 = 2050;
+	//DBG1("adc_value_T0: %lu\r\n", adc_value_T0);
 
 	myStr->point_i[ 0][circle] = value_i32[ 0];
 	myStr->point_i[ 1][circle] = value_i32[ 1];
@@ -323,7 +324,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 ///	myStr->point_i[13][circle] = adc_value_U2;	///	the temperature is now right
 	myStr->point_i[14][circle] = adc_value_T0 ;
 
-	DBG1(" x0:%05d %05d x1:%05d %05d  y0:%05d %05d y1:%05d %05d  z0:%05d %05d z1:%05d %05d U1:%04d U2:%04d T0:%04d",
+	DBG1(" x0:%05d %05d x1:%05d %05d  y0:%05d %05d y1:%05d %05d  z0:%05d %05d z1:%05d %05d U1:%04d U2:%04d T0:%04d\r\n",
 						(int)myStr->point_i[ 0][circle],
 						(int)myStr->point_i[ 1][circle],
 						(int)myStr->point_i[ 2][circle],
@@ -338,7 +339,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 						(int)myStr->point_i[11][circle],
 						(int)myStr->point_i[12][circle],
 						(int)myStr->point_i[13][circle],
-						(int)myStr->point_i[14][circle] ); fflush(stdout);
+						(int)myStr->point_i[14][circle] );
 
 	DBG1("\t %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d \r\n",
 						(int) myStr->zerone_i[ 0] ,
@@ -352,7 +353,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 						(int) myStr->zerone_i[ 8] ,
 						(int) myStr->zerone_i[ 9] ,
 						(int) myStr->zerone_i[10] ,
-						(int) myStr->zerone_i[11] ) ; fflush(stdout);
+						(int) myStr->zerone_i[11] );
 } //*****************************************************************************
 
 //*****************************************************************************

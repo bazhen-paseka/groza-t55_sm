@@ -12,6 +12,8 @@
 	#include "debug_gx.h"
 	#include "local_key.h"
 	#include "ringbuffer-gx.h"
+	#include "esp8266_sm.h"
+
 //******************************************************************************************
 
 	typedef struct {
