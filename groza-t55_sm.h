@@ -2,30 +2,27 @@
 #define GROZA_T55_SM_H_
 //******************************************************************************************
 
-	#include "stm32f1xx_hal.h"
-	#include "usart.h"
-	#include "gpio.h"
 	#include "stdio.h"
 	#include <string.h>
-
-	#include "groza-t55_config.h"
+	#include "main.h"
+	#include "usart.h"
 	#include "ringbuffer_dma_sm.h"
 	#include "average_calc_3_from_5.h"
 	#include "adc_light_stm32f103_hal_sm.h"
-	#include "lcd1602_fc113_sm.h"
-	#include "i2c_techmaker_sm.h"
-	#include "nrf24l01_config.h"
-	#include "nRF24L01_sm.h"
+	#include "ds18b20_sm.h"
+	#include "debug_gx.h"
+	#include "local_key.h"
 //******************************************************************************************
 
 	typedef struct {
-		uint32_t	point_u32[DEVICE_QNT][CIRCLE_QNT];
-		uint32_t	zerone_u32[DEVICE_QNT] ;
+		int		point_i[DEVICE_QNT][CIRCLE_QNT];
+		int		zerone_i[DEVICE_QNT] ;
 	} PointStr;
 
 //******************************************************************************************
 
-	void Groza_t55_init 	( void );
+	void Groza_2017_Init 	( void );
+	void Groza_2017_Main 	( void );
 //	void Groza_t55_test 	( void );
 //	void NRF24L01_Module	( void );
 	void Set_Flag_1_Sec		( uint8_t );
