@@ -27,6 +27,7 @@
 	PointStr MyStr3 = {0};
 
 	HAL_StatusTypeDef send_status = HAL_ERROR;
+	uint32_t 	adc_dma_main[3] = {0};
 
 //	uint8_t  dataIn[32];
 //	NRF24L01_Transmit_Status_t transmissionStatus;	/* NRF transmission status */
@@ -48,9 +49,62 @@
 
 //******************************************************************************************
 
+  // ADC НЕ працює, бо  "ringbuffer-gx.h" бере дані в ручному режимі і ламає роботу DMA
+  // ламається на 	Esp8266_Reset();
+  // треба переробити як в цьому прикладі
+
+	//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	//  if (huart->Instance == USART3) {
+	//	  char* nl = strchr((char*)uart_rx_buffer, '\n');
+	//	  if (nl) {
+	//		  *nl = '\0';
+	//		  strncpy(last_uart_line, (char*)uart_rx_buffer, sizeof(last_uart_line)-1);
+	//		  last_uart_line[sizeof(last_uart_line)-1] = '\0';
+	//		  uart_line_ready = 1;
+	//	  }
+	//	  HAL_UART_Receive_DMA(&huart3, (uint8_t*)uart_rx_buffer, RINGBUFFER_RX_SIZE);
+	//  }
+	//}  //*************************************************************************
+		//  HAL_StatusTypeDef Esp8266_Reset(void)
+		//  {
+		//      #define RESET_ATTEMPT 10
+		//      int check = RESET_ATTEMPT;
+		//      char read_buf[RINGBUFFER_RX_SIZE] = {0};
+		//
+		//      DBG2("Esp8266.Reset\r\n");
+		//      Esp8266_nReset(1);
+		//      HAL_Delay(100);
+		//      Esp8266_nReset(0);
+		//
+		//      // ОЧИСТИТИ буфер UART перед очікуванням
+		//      __HAL_UART_FLUSH_DRREGISTER(&huartX);  // або HAL_UART_AbortReceive()
+		//
+		//      // ПЕРЕЗАПУСТИТИ UART DMA
+		//      memset(uart_rx_buffer, 0, sizeof(uart_rx_buffer));
+		//      HAL_UART_Receive_DMA(&huartX, uart_rx_buffer, RINGBUFFER_RX_SIZE);
+		//
+		//      do {
+		//          HAL_Delay(100);
+		//          check--;
+		//
+		//          // ЧИТАЄМО ТІЛЬКИ З БУФЕРА, ЯКИЙ НАПОВНЮЄ CALLBACK
+		//          strncpy(read_buf, last_uart_line, sizeof(read_buf) - 1);
+		//          if (strcmp(read_buf, "ready\r\n") == 0) {
+		//              DBG2("Esp8266.Reset.Ok\r\n");
+		//              return HAL_OK;
+		//          }
+		//
+		//      } while (check > 0);
+		//
+		//      DBG2("Esp8266.Reset.Fail\r\n");
+		//      return HAL_ERROR;
+		//  }
 void Groza_2017_Init (void) {
 	DebugSoftVersion(SOFT_VERSION);
 	DBG1("\t UART1 for debug on speed 62500\r\n");
+
+	//DBG1("HAL_ADC_Init: %d \r\n", HAL_ADC_Init(&hadc1));
+	//DBG1("HAL_ADC_Start_DMA: %d \r\n", HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_dma_main, 3));
 
 	DBG1("\t Start.Ds18b20:\r\n");
 	Ds18b20_Init_DWT_Delay();
@@ -98,26 +152,26 @@ void Groza_2017_Main (void) {
 			Set_Flag_1_Sec(0);
 		}
 	}
-	for (				uint8_t line3=0; line3 < CIRCLE_QNT; line3++ )	{
-		for (			uint8_t line2=0; line2 < CIRCLE_QNT; line2++ )	{
-			for (		uint8_t line1=0; line1 < CIRCLE_QNT; line1++ )	{
-				for (	uint8_t line0=0; line0 < CIRCLE_QNT; line0++ )	{
+	for (				int line3=0; line3 < CIRCLE_QNT; line3++ )	{
+		for (			int line2=0; line2 < CIRCLE_QNT; line2++ )	{
+			for (		int line1=0; line1 < CIRCLE_QNT; line1++ )	{
+				for (	int line0=0; line0 < CIRCLE_QNT; line0++ )	{
 					while (Get_Flag_1_Sec() == 0) {	/* wait on flag 1 Sec */ }
 					Set_Flag_1_Sec(0);
 					Measurement( &MyStr0, line0);
 				}//for(line0)
 				for (uint8_t device = 0; device < DEVICE_QNT; device++) {
-					DBG1("  A%d%d%d\t", (int)line3, (int)line2, (int)line1 ); fflush(stdout);
+					DBG1("  A%d%d%d\t", 4-line3, 4-line2, 4-line1 ); fflush(stdout);
 					MyStr1.point_i[device][line1] = Calc_Average(MyStr0.point_i[device], CIRCLE_QNT);
 				}
 			}//for(line1)
 			for (uint8_t device = 0; device < DEVICE_QNT; device++) {
-				DBG1("  B%d%d\t", (int)line3, (int)line2 ); fflush(stdout);
+				DBG1("  B%d%d\t", 4-line3, 4-line2 ); fflush(stdout);
 				MyStr2.point_i[device][line2] = Calc_Average(MyStr1.point_i[device], CIRCLE_QNT);
 			}
 		}//for(line2)
 		for (uint8_t device = 0; device < DEVICE_QNT; device++) {
-			DBG1("  C%d\t", (int)line3 ); fflush(stdout);
+			DBG1("  C%d\t", 4-line3 ); fflush(stdout);
 			MyStr3.point_i[device][line3] = Calc_Average(MyStr2.point_i[device], CIRCLE_QNT);
 		}
 	}//for(line3)
@@ -295,13 +349,21 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	HAL_Delay(50);
 		// ZONE Z
 
-	//	uint32_t adc_value_U1 = ADC1_GetValue( &hadc1, ADC_CHANNEL_5 ) ;
+	//	uint32_t adc_value_U1 = 		ADC1_GetValue( &hadc1, ADC_CHANNEL_5 );
+	//	uint32_t adc_value_U2 = 		ADC1_GetValue( &hadc1, ADC_CHANNEL_6 );	///	the temperature is now right
+	//	uint32_t adc_value_T0 = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR);
+
+	//	uint32_t adc_value_U1 = 		adc_dma_main[0];
+	//	uint32_t adc_value_U2 = 		adc_dma_main[1];
+	//	uint32_t adc_value_T0 = 3700 - 	adc_dma_main[2];
+
 	uint32_t adc_value_U1 = 3000;
-	//DBG1("adc_value_U1: %lu\r\n", adc_value_U1);
-	///	uint32_t adc_value_U2 = ADC1_GetValue( &hadc1, ADC_CHANNEL_6 ) ;	///	the temperature is now right
-	//uint32_t adc_value_T0 = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
+	uint32_t adc_value_U2 = 3010;
 	uint32_t adc_value_T0 = 2050;
-	//DBG1("adc_value_T0: %lu\r\n", adc_value_T0);
+
+	//	DBG1("adc_value_U1: %lu\r\n", adc_value_U1);
+	//	DBG1("adc_value_U2: %lu\r\n", adc_value_U2);
+	//	DBG1("adc_value_T0: %lu\r\n", adc_value_T0);
 
 	myStr->point_i[ 0][circle] = value_i32[ 0];
 	myStr->point_i[ 1][circle] = value_i32[ 1];
@@ -320,7 +382,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 
 
 	myStr->point_i[12][circle] = adc_value_U1;
-///	myStr->point_i[13][circle] = adc_value_U2;	///	the temperature is now right
+	myStr->point_i[13][circle] = adc_value_U2;	///	the temperature is now right
 	myStr->point_i[14][circle] = adc_value_T0 ;
 
 	DBG1(" x0:%05d %05d x1:%05d %05d  y0:%05d %05d y1:%05d %05d  z0:%05d %05d z1:%05d %05d U1:%04d U2:%04d T0:%04d\r\n",
