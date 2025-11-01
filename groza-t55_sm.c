@@ -15,7 +15,7 @@
 
 //******************************************************************************************
 
-	char DataChar[0xFF];
+	//char DataChar[0xFF];
 	uint32_t timer_u32[ TIM_QNT ];
 	//  uint32_t channel_1_value_u32[4];
 	//  uint32_t channel_2_value_u32[4];
@@ -26,17 +26,8 @@
 	PointStr MyStr2 = {0};
 	PointStr MyStr3 = {0};
 
-//	PointStr MyStr0 = {0};
-//	PointStr MyStr1 = {0};
-//	PointStr MyStr2 = {0};
-//	PointStr MyStr3 = {0};
-//	char DataChar[0xFF] = {0};
-
-//	lcd1602_fc113_struct h1_lcd1602_fc113 =
-//	{
-//		.i2c = &hi2c1,
-//		.device_i2c_address = ADR_I2C_FC113
-//	};
+	HAL_StatusTypeDef send_status = HAL_ERROR;
+	uint32_t 	adc_dma_main[3] = {0};
 
 //	uint8_t  dataIn[32];
 //	NRF24L01_Transmit_Status_t transmissionStatus;	/* NRF transmission status */
@@ -58,9 +49,62 @@
 
 //******************************************************************************************
 
+  // ADC НЕ працює, бо  "ringbuffer-gx.h" бере дані в ручному режимі і ламає роботу DMA
+  // ламається на 	Esp8266_Reset();
+  // треба переробити як в цьому прикладі
+
+	//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	//  if (huart->Instance == USART3) {
+	//	  char* nl = strchr((char*)uart_rx_buffer, '\n');
+	//	  if (nl) {
+	//		  *nl = '\0';
+	//		  strncpy(last_uart_line, (char*)uart_rx_buffer, sizeof(last_uart_line)-1);
+	//		  last_uart_line[sizeof(last_uart_line)-1] = '\0';
+	//		  uart_line_ready = 1;
+	//	  }
+	//	  HAL_UART_Receive_DMA(&huart3, (uint8_t*)uart_rx_buffer, RINGBUFFER_RX_SIZE);
+	//  }
+	//}  //*************************************************************************
+		//  HAL_StatusTypeDef Esp8266_Reset(void)
+		//  {
+		//      #define RESET_ATTEMPT 10
+		//      int check = RESET_ATTEMPT;
+		//      char read_buf[RINGBUFFER_RX_SIZE] = {0};
+		//
+		//      DBG2("Esp8266.Reset\r\n");
+		//      Esp8266_nReset(1);
+		//      HAL_Delay(100);
+		//      Esp8266_nReset(0);
+		//
+		//      // ОЧИСТИТИ буфер UART перед очікуванням
+		//      __HAL_UART_FLUSH_DRREGISTER(&huartX);  // або HAL_UART_AbortReceive()
+		//
+		//      // ПЕРЕЗАПУСТИТИ UART DMA
+		//      memset(uart_rx_buffer, 0, sizeof(uart_rx_buffer));
+		//      HAL_UART_Receive_DMA(&huartX, uart_rx_buffer, RINGBUFFER_RX_SIZE);
+		//
+		//      do {
+		//          HAL_Delay(100);
+		//          check--;
+		//
+		//          // ЧИТАЄМО ТІЛЬКИ З БУФЕРА, ЯКИЙ НАПОВНЮЄ CALLBACK
+		//          strncpy(read_buf, last_uart_line, sizeof(read_buf) - 1);
+		//          if (strcmp(read_buf, "ready\r\n") == 0) {
+		//              DBG2("Esp8266.Reset.Ok\r\n");
+		//              return HAL_OK;
+		//          }
+		//
+		//      } while (check > 0);
+		//
+		//      DBG2("Esp8266.Reset.Fail\r\n");
+		//      return HAL_ERROR;
+		//  }
 void Groza_2017_Init (void) {
 	DebugSoftVersion(SOFT_VERSION);
 	DBG1("\t UART1 for debug on speed 62500\r\n");
+
+	//DBG1("HAL_ADC_Init: %d \r\n", HAL_ADC_Init(&hadc1));
+	//DBG1("HAL_ADC_Start_DMA: %d \r\n", HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_dma_main, 3));
 
 	DBG1("\t Start.Ds18b20:\r\n");
 	Ds18b20_Init_DWT_Delay();
@@ -70,31 +114,34 @@ void Groza_2017_Init (void) {
 	int temp_int = Ds18b20_Get_Temp_SkipROM ();
 	DBG1( "DS18b20 = %d;\r\n",temp_int);
 
-	DBG1("\t Start.Esp8266:\r\n");
-	HAL_GPIO_WritePin(Esp8266_En_GPIO_Port, Esp8266_En_Pin, SET);	// Esp8266 is Enable
-	HAL_GPIO_WritePin(Esp8266_nRESET_GPIO_Port, Esp8266_nRESET_Pin, SET);	// Esp8266 release RESET
+	Esp8266_Init();
+	Esp8266_WakeUp();
+	Esp8266_Reset();
+	Esp8266_Connect_to_WIFI( ATTEMPT_TO_WIFI );
+
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
 	HAL_GPIO_WritePin(BUTTON_GND_GPIO_Port, BUTTON_GND_Pin, RESET );
+
 	while (HAL_GPIO_ReadPin(BUTTON_INPUT_GPIO_Port, BUTTON_INPUT_Pin ) == GPIO_PIN_RESET ) {
 		Measurement( &MyStr0, 0 );
 	}
 
+	DBG1( "Measurement.wait.for.router.ready\r\n");
 	#if ( FIRST8 == 1 )
-		for (int i=0; i<6; i++) {	// wait for router ready
-			Measurement( &MyStr0, 0 );
+		for (int i=6; i>=0; i--) {	// wait for router ready
+			Measurement( &MyStr0, i );
 			HAL_Delay(300);
 		}
 
 	#elif ( NEXT12	== 1)
 		for (int i=0; i<70; i++) {	// wait for router ready
-			Measurement( &MyStr0, 0 );
+			Measurement( &MyStr0, i );
 			HAL_Delay(300);
 		}
 	#endif
 
-	RingBuffer_DMA_Connect();
-	HAL_TIM_Base_Start_IT(&htim3);
-	DBG1("\t End.Init.\r\n");
+	HAL_TIM_Base_Start_IT(&GROZA_TIM3);
+	DBG1("End.Init.\r\n\r\n");
 } //*****************************************************************************
 
 void Groza_2017_Main (void) {
@@ -105,26 +152,26 @@ void Groza_2017_Main (void) {
 			Set_Flag_1_Sec(0);
 		}
 	}
-	for (				uint8_t line3=0; line3 < CIRCLE_QNT; line3++ )	{
-		for (			uint8_t line2=0; line2 < CIRCLE_QNT; line2++ )	{
-			for (		uint8_t line1=0; line1 < CIRCLE_QNT; line1++ )	{
-				for (	uint8_t line0=0; line0 < CIRCLE_QNT; line0++ )	{
+	for (				int line3=0; line3 < CIRCLE_QNT; line3++ )	{
+		for (			int line2=0; line2 < CIRCLE_QNT; line2++ )	{
+			for (		int line1=0; line1 < CIRCLE_QNT; line1++ )	{
+				for (	int line0=0; line0 < CIRCLE_QNT; line0++ )	{
 					while (Get_Flag_1_Sec() == 0) {	/* wait on flag 1 Sec */ }
 					Set_Flag_1_Sec(0);
 					Measurement( &MyStr0, line0);
 				}//for(line0)
 				for (uint8_t device = 0; device < DEVICE_QNT; device++) {
-					DBG1("  A%d%d%d\t", (int)line3, (int)line2, (int)line1 ); fflush(stdout);
+					DBG1("  A%d%d%d\t", 4-line3, 4-line2, 4-line1 ); fflush(stdout);
 					MyStr1.point_i[device][line1] = Calc_Average(MyStr0.point_i[device], CIRCLE_QNT);
 				}
 			}//for(line1)
 			for (uint8_t device = 0; device < DEVICE_QNT; device++) {
-				DBG1("  B%d%d\t", (int)line3, (int)line2 ); fflush(stdout);
+				DBG1("  B%d%d\t", 4-line3, 4-line2 ); fflush(stdout);
 				MyStr2.point_i[device][line2] = Calc_Average(MyStr1.point_i[device], CIRCLE_QNT);
 			}
 		}//for(line2)
 		for (uint8_t device = 0; device < DEVICE_QNT; device++) {
-			DBG1("  C%d\t", (int)line3 ); fflush(stdout);
+			DBG1("  C%d\t", 4-line3 ); fflush(stdout);
 			MyStr3.point_i[device][line3] = Calc_Average(MyStr2.point_i[device], CIRCLE_QNT);
 		}
 	}//for(line3)
@@ -135,6 +182,8 @@ void Groza_2017_Main (void) {
 		aver_res_u32[device] = Calc_Average(MyStr3.point_i[device], CIRCLE_QNT);
 	}
 	Ds18b20_ConvertTemp_SkipROM();
+
+	Esp8266_Connect_to_WIFI( ATTEMPT_TO_WIFI );
 
 	char http_req[0xFF] = { 0 } ;
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
@@ -147,7 +196,7 @@ void Groza_2017_Main (void) {
 					(int) MyStr0.zerone_i[ 6] ,
 					(int) MyStr0.zerone_i[ 7] ) ;
 	char apiKey_2[] = THINGSPEAK_API_KEY_2 ;
-	RingBuffer_DMA_Main(http_req, apiKey_2);
+	Esp8266_Send_to_Inet(http_req, apiKey_2, ATTEMPT_TO_INET );
 	HAL_Delay(500);
 
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
@@ -160,7 +209,7 @@ void Groza_2017_Main (void) {
 					(int) MyStr0.zerone_i[14] ,
 					(int) MyStr0.zerone_i[15] ) ;
 	char apiKey_3[] = THINGSPEAK_API_KEY_3 ;
-	RingBuffer_DMA_Main(http_req, apiKey_3);
+	Esp8266_Send_to_Inet(http_req, apiKey_3, ATTEMPT_TO_INET );
 
 	sprintf(http_req, "&field1=%d&field2=%d&field3=%d&field4=%d&field5=%d&field6=%d&field7=%d&field8=%d\r\n\r\n",
 					(int) aver_res_u32[ 0] ,
@@ -172,7 +221,7 @@ void Groza_2017_Main (void) {
 					(int) aver_res_u32[ 6] ,
 					(int) aver_res_u32[ 7] );
 	char apiKey_0[] = THINGSPEAK_API_KEY_0 ;
-	RingBuffer_DMA_Main(http_req, apiKey_0);
+	Esp8266_Send_to_Inet(http_req, apiKey_0, ATTEMPT_TO_INET );
 	HAL_Delay(500);
 
 	int ds18b20_int = Ds18b20_Get_Temp_SkipROM ();
@@ -188,7 +237,7 @@ void Groza_2017_Main (void) {
 					(int)aver_res_u32[12],
 					(int) ds18b20_int      );
 	char apiKey_1[] = THINGSPEAK_API_KEY_1 ;
-	RingBuffer_DMA_Main(http_req, apiKey_1);
+	Esp8266_Send_to_Inet(http_req, apiKey_1, ATTEMPT_TO_INET );
 	HAL_Delay(500);
 
 #elif ( NEXT12	== 1)
@@ -202,7 +251,7 @@ void Groza_2017_Main (void) {
 					(int) aver_res_u32[14] ,
 					(int) ds18b20_int       );
 	char apiKey_1[] = THINGSPEAK_API_KEY_1 ;
-	RingBuffer_DMA_Main(http_req, apiKey_1);
+	Esp8266_Send_to_Inet(http_req, apiKey_1, ATTEMPT_TO_INET );
 	HAL_Delay(500);
 #endif
 
@@ -300,9 +349,21 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 	HAL_Delay(50);
 		// ZONE Z
 
-	uint32_t adc_value_U1 = ADC1_GetValue( &hadc1, ADC_CHANNEL_5 ) ;
-///	uint32_t adc_value_U2 = ADC1_GetValue( &hadc1, ADC_CHANNEL_6 ) ;	///	the temperature is now right
-	uint32_t adc_value_T0 = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR)  ;
+	//	uint32_t adc_value_U1 = 		ADC1_GetValue( &hadc1, ADC_CHANNEL_5 );
+	//	uint32_t adc_value_U2 = 		ADC1_GetValue( &hadc1, ADC_CHANNEL_6 );	///	the temperature is now right
+	//	uint32_t adc_value_T0 = 3700 - 	ADC1_GetValue( &hadc1, ADC_CHANNEL_TEMPSENSOR);
+
+	//	uint32_t adc_value_U1 = 		adc_dma_main[0];
+	//	uint32_t adc_value_U2 = 		adc_dma_main[1];
+	//	uint32_t adc_value_T0 = 3700 - 	adc_dma_main[2];
+
+	uint32_t adc_value_U1 = 3000;
+	uint32_t adc_value_U2 = 3010;
+	uint32_t adc_value_T0 = 2050;
+
+	//	DBG1("adc_value_U1: %lu\r\n", adc_value_U1);
+	//	DBG1("adc_value_U2: %lu\r\n", adc_value_U2);
+	//	DBG1("adc_value_T0: %lu\r\n", adc_value_T0);
 
 	myStr->point_i[ 0][circle] = value_i32[ 0];
 	myStr->point_i[ 1][circle] = value_i32[ 1];
@@ -321,10 +382,10 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 
 
 	myStr->point_i[12][circle] = adc_value_U1;
-///	myStr->point_i[13][circle] = adc_value_U2;	///	the temperature is now right
+	myStr->point_i[13][circle] = adc_value_U2;	///	the temperature is now right
 	myStr->point_i[14][circle] = adc_value_T0 ;
 
-	DBG1(" x0:%05d %05d x1:%05d %05d  y0:%05d %05d y1:%05d %05d  z0:%05d %05d z1:%05d %05d U1:%04d U2:%04d T0:%04d",
+	DBG1(" x0:%05d %05d x1:%05d %05d  y0:%05d %05d y1:%05d %05d  z0:%05d %05d z1:%05d %05d U1:%04d U2:%04d T0:%04d\r\n",
 						(int)myStr->point_i[ 0][circle],
 						(int)myStr->point_i[ 1][circle],
 						(int)myStr->point_i[ 2][circle],
@@ -339,7 +400,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 						(int)myStr->point_i[11][circle],
 						(int)myStr->point_i[12][circle],
 						(int)myStr->point_i[13][circle],
-						(int)myStr->point_i[14][circle] ); fflush(stdout);
+						(int)myStr->point_i[14][circle] );
 
 	DBG1("\t %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d %02d \r\n",
 						(int) myStr->zerone_i[ 0] ,
@@ -353,7 +414,7 @@ void Measurement (PointStr *myStr, uint8_t circle) {
 						(int) myStr->zerone_i[ 8] ,
 						(int) myStr->zerone_i[ 9] ,
 						(int) myStr->zerone_i[10] ,
-						(int) myStr->zerone_i[11] ) ; fflush(stdout);
+						(int) myStr->zerone_i[11] );
 } //*****************************************************************************
 
 //*****************************************************************************
