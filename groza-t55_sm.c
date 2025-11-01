@@ -63,12 +63,11 @@ void Groza_2017_Init (void) {
 	Esp8266_Init();
 	Esp8266_WakeUp();
 	Esp8266_Reset();
-	//Esp8266_Connect_to_WIFI( ATTEMPT_TO_WIFI );
+	Esp8266_Connect_to_WIFI( ATTEMPT_TO_WIFI );
 
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, SET) ;
 	HAL_GPIO_WritePin(BUTTON_GND_GPIO_Port, BUTTON_GND_Pin, RESET );
 
-	//DBG1( "Measurement.&MyStr0\r\n");
 	while (HAL_GPIO_ReadPin(BUTTON_INPUT_GPIO_Port, BUTTON_INPUT_Pin ) == GPIO_PIN_RESET ) {
 		Measurement( &MyStr0, 0 );
 	}
